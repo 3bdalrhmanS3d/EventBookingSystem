@@ -1,0 +1,110 @@
+﻿@model EventBookingSystemV1.ViewModels.UserDetailsViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "User Details";
+}
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<div class="container-admin">
+    <a href="javascript:history.back()" class="btn-admin mb-3">← Back</a>
+    <br />
+    <br />
+
+    <h2>User Details</h2>
+
+    <div class="card-admin mb-4">
+        <div class="card-body-admin">
+            <dl class="row">
+                <dt class="col-sm-3">Full Name</dt>
+                <dd class="col-sm-9">@Model.FullName</dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+
+                <dt class="col-sm-3">Role</dt>
+                <dd class="col-sm-9">@Model.Role</dd>
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inactive</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">Birth Date</dt>
+                <dd class="col-sm-9">@Model.BirthDate.ToString("yyyy-MM-dd") ( @Model.Age years )</dd>
+
+                <dt class="col-sm-3">Created At</dt>
+                <dd class="col-sm-9">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="mb-4">
+        @if (Model.IsActive)
+        {
+            <form asp-action="DeactivateUser"
+                  asp-route-id="@Model.Id"
+                  method="post"
+                  class="d-inline"
+                  onsubmit="return confirm('Are you sure you want to deactivate this user?');">
+                @Html.AntiForgeryToken()
+                <button class="btn-admin">Deactivate</button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="ActivateUser"
+                  asp-route-id="@Model.Id"
+                  method="post"
+                  class="d-inline">
+                @Html.AntiForgeryToken()
+                <button class="btn-admin">Activate</button>
+            </form>
+        }
+
+        <form asp-action="DeleteUser"
+              asp-route-id="@Model.Id"
+              method="post"
+              class="d-inline ms-2"
+              onsubmit="return confirm('This will permanently delete the user and all their data. Continue?');">
+            @Html.AntiForgeryToken()
+            <button class="btn-outline-admin">Delete</button>
+        </form>
+    </div>
+
+
+    <h3>Bookings (@Model.Bookings.Count)</h3>
+    @if (Model.Bookings.Any())
+    {
+        <table class="table-admin">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Event Title</th>
+                    <th>Event Date</th>
+                    <th>Booked At</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.Bookings)
+                {
+                    <tr>
+                        <td>@b.Id</td>
+                        <td>@b.EventTitle</td>
+                        <td>@b.EventDate.ToString("yyyy-MM-dd")</td>
+                        <td>@b.BookedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No bookings found for this user.</p>
+    }
+</div>

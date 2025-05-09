@@ -1,16 +1,16 @@
-﻿using EventBookingSystemV1.Configuration;
+﻿using System;
+using EventBookingSystemV1.Configuration;
 using EventBookingSystemV1.Data;
 using EventBookingSystemV1.Models;
 using EventBookingSystemV1.Services;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using System;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,24 +18,41 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2) Identity helpers
+// 2) Password hasher
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
-// 3) Bind JWT settings and register JWT service
+// 3) JWT settings & service (for issuing your JWTs, if still needed)
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JWT"));
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// 4) Register Email queue services using MailKit
+// 4) Email queue using MailKit
 builder.Services.AddSingleton<EmailQueueService>();
 builder.Services.AddHostedService<EmailQueueBackgroundService>();
 
-// 5) Add MVC support
+// 5) Authentication & Cookie scheme
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/account/signin";
+        options.AccessDeniedPath = "/account/signin";
+        options.Cookie.Name = "ebs_auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.ExpireTimeSpan = TimeSpan.FromDays(15);
+    });
+
+// 6) MVC support
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Apply migrations and seed default admin
+// 7) Migrate & seed default admin
 using (var scope = app.Services.CreateScope())
 {
     var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
@@ -45,28 +62,28 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 
     var adminConfig = cfg.GetSection("DefaultAdmin");
-    string adminEmail = adminConfig["Email"];
-    string adminName = adminConfig["FullName"];
-    string adminPass = adminConfig["Password"];
+    var email = adminConfig["Email"];
+    var name = adminConfig["FullName"];
+    var pass = adminConfig["Password"];
 
     if (!context.Users.Any(u => u.Role == UserRole.Admin))
     {
-        var defaultAdmin = new User
+        var admin = new User
         {
-            FullName = adminName,
-            Email = adminEmail,
+            FullName = name,
+            Email = email,
             Role = UserRole.Admin,
             IsActive = true,
             BirthDate = DateTimeOffset.UtcNow,
             CreatedAt = DateTimeOffset.UtcNow
         };
-        defaultAdmin.PasswordHash = hasher.HashPassword(defaultAdmin, adminPass);
-        context.Users.Add(defaultAdmin);
+        admin.PasswordHash = hasher.HashPassword(admin, pass);
+        context.Users.Add(admin);
         context.SaveChanges();
     }
 }
 
-// Configure middleware
+// 8) Middleware pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -76,6 +93,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// ** Authentication must come before Authorization **
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

@@ -1,0 +1,149 @@
+/* Global Admin Stylesheet */
+:root {
+    --primary-color: #764ba2;
+    --primary-hover: #5a3591;
+    --accent-color: #667eea;
+    --background-start: #f4f4f9;
+    --background-end: #ffffff;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --text-color: #333333;
+    --heading-color: #2d2d2d;
+}
+
+/* Base */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family);
+    color: var(--text-color);
+    background: var(--background-start);
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+    a:hover {
+        color: var(--primary-hover);
+    }
+
+/* Navbar */
+.navbar-admin {
+    background: var(--primary-color);
+    color: #fff;
+    padding: 1rem;
+}
+
+    .navbar-admin .navbar-brand,
+    .navbar-admin .nav-link {
+        color: #fff;
+    }
+
+        .navbar-admin .nav-link:hover {
+            color: var(--accent-color);
+        }
+
+/* Container */
+.container-admin {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--heading-color);
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn-admin {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+}
+
+    .btn-admin:hover {
+        background-color: var(--primary-hover);
+    }
+
+.btn-outline-admin {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+    .btn-outline-admin:hover {
+        background-color: var(--primary-color);
+        color: #fff;
+    }
+
+/* Tables */
+.table-admin {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+    .table-admin th,
+    .table-admin td {
+        padding: 0.75rem;
+        border: 1px solid #e0e0e0;
+        text-align: left;
+    }
+
+    .table-admin th {
+        background-color: var(--accent-color);
+        color: #fff;
+    }
+
+/* Alerts */
+.alert-admin {
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.alert-admin-danger {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.alert-admin-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+/* Pagination */
+.pagination-admin {
+    display: flex;
+    list-style: none;
+    padding: 0;
+}
+
+    .pagination-admin li {
+        margin: 0 0.25rem;
+    }
+
+    .pagination-admin a {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--primary-color);
+        border-radius: 0.25rem;
+        color: var(--primary-color);
+    }
+
+        .pagination-admin .active a,
+        .pagination-admin a:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }

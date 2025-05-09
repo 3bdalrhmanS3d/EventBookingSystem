@@ -1,0 +1,62 @@
+﻿@model EventBookingSystemV1.ViewModels.DashboardViewModel
+@{
+    //Layout = "~/Views/Shared/_Layout.cshtml"; // or your admin layout
+    ViewData["Title"] = "Admin Dashboard";
+}
+<!-- Include admin CSS -->
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<div class="container-admin">
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-admin alert-admin-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-6 col-xl-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Users</h5>
+                    <p class="display-4">@Model.TotalUsers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Events</h5>
+                    <p class="display-4">@Model.TotalEvents</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Bookings</h5>
+                    <p class="display-4">@Model.TotalBookings</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Pending Verifications</h5>
+                    <p class="display-4">@Model.PendingVerifications</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optionally add quick links -->
+    <div class="mt-4">
+        <a href="@Url.Action("Users", "Admin")" class="btn-admin me-2">Manage Users</a>
+        <a href="@Url.Action("Events", "Admin")" class="btn-admin me-2">Manage Events</a>
+        <a href="@Url.Action("Bookings", "Admin")" class="btn-admin">Manage Bookings</a>
+        <a href="@Url.Action("Audit","Admin")" class="btn-admin">View Audit Logs</a>
+
+    </div>
+</div>

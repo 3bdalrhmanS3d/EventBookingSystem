@@ -1,0 +1,53 @@
+﻿@model IEnumerable<EventBookingSystemV1.ViewModels.AuditLogViewModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Audit Logs";
+}
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<div class="container-admin">
+    <a href="javascript:history.back()" class="btn-admin mb-3">&larr; Back</a>
+    <br />
+    <br />
+    <h2>Audit Logs</h2>
+
+    <table class="table-admin">
+        <thead>
+            <tr>
+                <th>Entity</th>
+                <th>Entity ID</th>
+                <th>Action</th>
+                <th>By</th>
+                <th>When</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in Model)
+            {
+                <tr>
+                    <td>@log.EntityName</td>
+                    <td>@log.EntityId</td>
+                    <td>@log.Action</td>
+                    <td>@log.PerformedBy</td>
+                    <td>@log.PerformedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    <td>
+                        <button class="btn-outline-admin btn-sm" data-bs-toggle="collapse" data-bs-target="#json-@log.Id">Show</button>
+                    </td>
+                    <td>
+                        <a href="@Url.Action("AuditDetails", "Admin", new { id = log.Id })" class="btn-outline-admin btn-sm">Details</a>
+                    </td>
+                </tr>
+                
+            }
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        @for (int i = 1; i <= (int)ViewData["TotalPages"]!; i++)
+        {
+            <a href="@Url.Action("Audit", "Admin", new { page = i })" class="btn-outline-admin btn-sm @(i == (int)ViewData["CurrentPage"] ? "active" : "")">@i</a>
+        }
+    </div>
+</div>

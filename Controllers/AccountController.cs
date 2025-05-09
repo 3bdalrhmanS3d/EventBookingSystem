@@ -1,10 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using EventBookingSystemV1.Data;
 using EventBookingSystemV1.DTOs;
 using EventBookingSystemV1.Models;
 using EventBookingSystemV1.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -172,9 +175,9 @@ namespace EventBookingSystemV1.Controllers
         public IActionResult SignIn() => View();
 
         // Post /account/signin 
-        [HttpPost]
+        [HttpPost("signin")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SignIn(SignInDto dto)
+        public async Task<IActionResult> SignIn(SignInDto dto , string returnUrl = null)
         {
             if (!ModelState.IsValid)
                 return View(dto);
@@ -212,18 +215,37 @@ namespace EventBookingSystemV1.Controllers
                 return RedirectToAction("VerifyEmail", new { email = user.Email });
             }
 
-            // Issue JWT cookie
-            var jwt = _jwtService.GenerateToken(user);
-            var cookieOpts = new CookieOptions
+            // 1) بناء ClaimsPrincipal
+            var claims = new List<Claim>
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name,           user.FullName),
+                new Claim(ClaimTypes.Email,          user.Email),
+                new Claim(ClaimTypes.Role,           user.Role.ToString())
             };
-            if (dto.RememberMe)
-                cookieOpts.Expires = DateTimeOffset.UtcNow.AddDays(15);
 
-            Response.Cookies.Append("jwt_token", jwt, cookieOpts);
+            var identity = new ClaimsIdentity(
+                claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            // 2) خصائص المصادقة
+            var props = new AuthenticationProperties
+            {
+                IsPersistent = dto.RememberMe,
+                ExpiresUtc = dto.RememberMe
+                    ? DateTimeOffset.UtcNow.AddDays(15)
+                    : (DateTimeOffset?)null
+            };
+
+            // 3) تسجيل الدخول
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                props);
+
+            // 4) إعادة التوجيه
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
 
             return RedirectToAction("Index", "Home");
         }

@@ -1,0 +1,89 @@
+﻿@model IEnumerable<EventBookingSystemV1.ViewModels.UserViewModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Manage Users";
+}
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<a href="javascript:history.back()" class="btn-admin mb-3">
+    ← back
+</a>
+
+<div class="container-admin">
+    <h2>Manage Users</h2>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-admin alert-admin-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <form method="get" class="mb-3 d-flex">
+        <input name="search" value="@(ViewData["Search"] ?? "")"
+               class="form-control me-2" placeholder="Search users..." />
+        <button type="submit" class="btn-outline-admin">Search</button>
+    </form>
+
+    <table class="table-admin">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Age</th>
+                <th>Active</th>
+                <th>Joined On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td>@u.Id</td>
+                    <td>@u.FullName</td>
+                    <td>@u.Email</td>
+                    <td>@u.Role</td>
+                    <td>@u.Age</td>
+                    <td>
+                        @if (u.IsActive)
+                        {
+                            <span class="badge bg-success">Yes</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">No</span>
+                        }
+                    </td>
+                    <td>@u.CreatedAt.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <a asp-action="UserDetails"
+                           asp-route-id="@u.Id"
+                           class="btn-outline-admin btn-sm">
+                            View
+                        </a>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* Pagination *@
+    @{
+        var current = (int)ViewData["CurrentPage"];
+        var total = (int)ViewData["TotalPages"];
+    }
+    <ul class="pagination-admin">
+        @for (int i = 1; i <= total; i++)
+        {
+            <li class="@(i == current ? "active" : "")">
+                <a asp-action="Users" asp-route-page="@i" asp-route-search="@(ViewData["Search"])">
+                    @i
+                </a>
+            </li>
+        }
+    </ul>
+</div>

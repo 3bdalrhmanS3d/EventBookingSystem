@@ -1,0 +1,41 @@
+﻿@model EventBookingSystemV1.ViewModels.AuditLogDetailViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Audit Log Details";
+}
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<div class="container-admin">
+    <a href="javascript:history.back()" class="btn-admin mb-3">← Back</a>
+    <h2>Audit Log Details</h2>
+
+    <div class="card-admin mb-4">
+        <div class="card-body-admin">
+            <dl class="row">
+                <dt class="col-sm-3">Entity Name</dt>
+                <dd class="col-sm-9">@Model.EntityName</dd>
+
+                <dt class="col-sm-3">Entity ID</dt>
+                <dd class="col-sm-9">@Model.EntityId</dd>
+
+                <dt class="col-sm-3">Action</dt>
+                <dd class="col-sm-9">@Model.Action</dd>
+
+                <dt class="col-sm-3">Performed By</dt>
+                <dd class="col-sm-9">
+                    <a href="@Url.Action("UserDetails", "Admin", new { id = Model.PerformedByUser.Id })">
+                        @Model.PerformedByUser.FullName
+                    </a>
+                </dd>
+
+                <dt class="col-sm-3">Performed At</dt>
+                <dd class="col-sm-9">@Model.PerformedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <h3>Changes</h3>
+    <pre class="card-admin p-3" style="white-space: pre-wrap; word-break: break-word;">
+        @Model.ChangesJson
+    </pre>
+</div>

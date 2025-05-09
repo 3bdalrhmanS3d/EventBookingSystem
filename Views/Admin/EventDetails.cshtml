@@ -1,0 +1,111 @@
+﻿@model EventBookingSystemV1.ViewModels.EventDetailsViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Event Details";
+}
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<div class="container-admin">
+    <a href="javascript:history.back()" class="btn-admin mb-3">← Back</a>
+    <h2>Event Details</h2>
+
+    <div class="card-admin mb-4">
+        <div class="card-body-admin d-flex gap-4">
+            <img src="@Model.ImageUrl" alt="@Model.Title" class="event-image" />
+            <div>
+                <h3>@Model.Title</h3>
+                <p>@Model.Description</p>
+                <dl class="row">
+                    <dt class="col-sm-3">Category</dt>
+                    <dd class="col-sm-9">@Model.Category</dd>
+
+                    <dt class="col-sm-3">Venue</dt>
+                    <dd class="col-sm-9">@Model.Venue</dd>
+
+                    <dt class="col-sm-3">Date</dt>
+                    <dd class="col-sm-9">@Model.Date.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                    <dt class="col-sm-3">Price</dt>
+                    <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
+
+                    <dt class="col-sm-3">Tags</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.Tags.Any())
+                        {
+                            @foreach (var tag in Model.Tags)
+                            {
+                                <span class="badge bg-info me-1">@tag</span>
+                            }
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <h3>Bookings (@Model.Bookings.Count)</h3>
+    @if (Model.Bookings.Any())
+    {
+        <table class="table-admin mb-4">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>User Name</th>
+                    <th>User Email</th>
+                    <th>Booked At</th>
+                    <th>Tickets</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.Bookings)
+                {
+                    <tr>
+                        <td>@b.Id</td>
+                        <td>@b.UserName</td>
+                        <td>@b.UserEmail</td>
+                        <td>@b.BookedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@b.TicketCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No bookings for this event.</p>
+    }
+
+    <h3>Reviews (@Model.Reviews.Count)</h3>
+    @if (Model.Reviews.Any())
+    {
+        <table class="table-admin">
+            <thead>
+                <tr>
+                    <th>Reviewer</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Reviews)
+                {
+                    <tr>
+                        <td>@r.Reviewer</td>
+                        <td>@r.Rating</td>
+                        <td>@r.Comment</td>
+                        <td>@r.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No reviews yet.</p>
+    }
+</div>
