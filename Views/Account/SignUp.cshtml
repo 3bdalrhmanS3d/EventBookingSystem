@@ -1,0 +1,240 @@
+﻿@model EventBookingSystemV1.DTOs.SignUpDto
+@{
+    Layout = null;
+    ViewData["Title"] = "Sign Up - Eventbookings";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/css/intlTelInput.css" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    crossorigin="anonymous"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+  <title>@ViewData["Title"]</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-container {
+      width: 500px;
+      padding: 2rem;
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    }
+    .form-container h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    label.form-label,
+    .form-control,
+    .input-group-text,
+    .btn-primary {
+      font-size: 1.3rem;
+    }
+    label.form-label { font-weight: 600; }
+    .form-control {
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+    }
+    .input-group-text {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #6c757d;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      background-color: #764ba2;
+      border: none;
+      font-size: 1.3rem;
+    }
+    .btn-primary:hover {
+      background-color: #5a3591;
+    }
+    .password-hint {
+      display: none;
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      left: 0;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+      z-index: 10;
+      font-size: 0.9rem;
+    }
+    .password-hint ul { padding-left: 1rem; margin-bottom: 0; }
+    .password-hint li { list-style: none; margin-bottom: 0.25rem; }
+    .links {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+    .links a {
+      color: #764ba2;
+      text-decoration: none;
+      margin: 0 .5rem;
+    }
+    .links a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Create a New Account</h2>
+    <form asp-action="SignUp" method="post" id="signinform" autocomplete="off">
+      @Html.AntiForgeryToken()
+      <input type="hidden" id="ReCapchaToken" name="ReCapchaToken" />
+      <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label asp-for="FirstName" class="form-label">First Name</label>
+          <input asp-for="FirstName" class="form-control" />
+          <span asp-validation-for="FirstName" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+          <label asp-for="LastName" class="form-label">Last Name</label>
+          <input asp-for="LastName" class="form-control" />
+          <span asp-validation-for="LastName" class="text-danger"></span>
+        </div>
+        <div class="col-12">
+          <label asp-for="EmailAddress" class="form-label">Email Address</label>
+          <input asp-for="EmailAddress" class="form-control" placeholder="you@example.com" />
+          <span asp-validation-for="EmailAddress" class="text-danger"></span>
+        </div>
+        <div class="col-12 position-relative">
+          <label asp-for="Password" class="form-label">Password</label>
+          <div class="input-group">
+            <input
+              asp-for="Password"
+              type="password"
+              class="form-control"
+              id="PasswordInput"/>
+            <span class="input-group-text" onclick="togglePassword('PasswordInput')">
+              <i class="bi bi-eye-fill"></i>
+            </span>
+          </div>
+          <span asp-validation-for="Password" class="text-danger"></span>
+          <div id="passwordValidator" class="password-hint">
+            <ul>
+              <li id="rule-length"><i class="bi bi-x-circle me-1"></i>12–63 characters</li>
+              <li id="rule-uppercase"><i class="bi bi-x-circle me-1"></i>One uppercase character</li>
+              <li id="rule-lowercase"><i class="bi bi-x-circle me-1"></i>One lowercase character</li>
+              <li id="rule-number"><i class="bi bi-x-circle me-1"></i>One number</li>
+              <li id="rule-strength"><i class="bi bi-x-circle me-1"></i>Sufficiently strong</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-12 position-relative">
+          <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+          <div class="input-group">
+            <input
+              asp-for="ConfirmPassword"
+              type="password"
+              class="form-control"
+              id="ConfirmPasswordInput"/>
+            <span class="input-group-text" onclick="togglePassword('ConfirmPasswordInput')">
+              <i class="bi bi-eye-fill"></i>
+            </span>
+          </div>
+          <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+        </div>
+                <div class="form-check mb-4">
+                    <input asp-for="AcceptTerms" class="form-check-input" />
+                    <label asp-for="AcceptTerms" class="form-check-label">I agree to the Terms & Conditions</label>
+                    <span asp-validation-for="AcceptTerms" class="text-danger"></span>
+                </div>
+
+        <div class="col-12 d-grid">
+          <button type="submit" class="btn btn-primary">Sign Up</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="links">
+      Already have an account? <a asp-action="SignIn">Log In</a>
+    </div>
+  </div>
+
+  <script
+    src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <script src="/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+  <script src="/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+  <script>
+    function togglePassword(id) {
+      const input = document.getElementById(id);
+      const icon = document.querySelector(
+        `[onclick="togglePassword('${id}')"] i`
+      );
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye-fill','bi-eye-slash-fill');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash-fill','bi-eye-fill');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      const pwd = document.getElementById('PasswordInput');
+      const conf = document.getElementById('ConfirmPasswordInput');
+      const panel = document.getElementById('passwordValidator');
+      pwd.addEventListener('focus', () => panel.style.display = 'block');
+      pwd.addEventListener('blur', () => setTimeout(() => panel.style.display = 'none', 200));
+      pwd.addEventListener('input', () => {
+        const v = pwd.value;
+        check('length', v.length >= 12 && v.length <= 63);
+        check('uppercase', /[A-Z]/.test(v));
+        check('lowercase', /[a-z]/.test(v));
+        check('number', /\d/.test(v));
+        check('strength', v.length >= 20 || /[^A-Za-z0-9]/.test(v));
+      });
+      conf.addEventListener('input', () => {
+        if (conf.value === pwd.value && pwd.value) {
+          conf.classList.add('is-valid');
+          conf.classList.remove('is-invalid');
+        } else {
+          conf.classList.add('is-invalid');
+          conf.classList.remove('is-valid');
+        }
+      });
+      function check(rule, ok) {
+        const li = document.getElementById(`rule-${rule}`);
+        const icon = li.querySelector('i');
+        if (ok) {
+          li.classList.replace('text-danger','text-success');
+          icon.classList.replace('bi-x-circle','bi-check-circle');
+        } else {
+          li.classList.replace('text-success','text-danger');
+          icon.classList.replace('bi-check-circle','bi-x-circle');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

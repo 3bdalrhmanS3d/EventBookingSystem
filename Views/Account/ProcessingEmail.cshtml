@@ -1,0 +1,44 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Processing...";
+    var email = (string)ViewData["Email"];
+    var type = (string)ViewData["Type"];
+    // Determine redirect URLs
+    var redirectUrl = type == "signup"
+        ? Url.Action("VerifyEmail", "Account", new { email = email })
+        : Url.Action("ForgotPasswordConfirmation", "Account");
+}
+
+<div class="container text-center py-5">
+    <h2 class="mb-4">One moment please...</h2>
+    <p>We're sending an email to <strong>@email</strong>. This may take a few seconds.</p>
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <p><small>If it takes too long, please check your spam folder.</small></p>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const email = '@email';
+            const type = '@type';
+            const redirectUrl = '@redirectUrl';
+            function checkEmailSent() {
+                fetch(`/account/email-sent-check?email=${encodeURIComponent(email)}&type=${type}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.sent) {
+                            window.location.href = redirectUrl;
+                        }
+                    });
+            }
+            // Poll every 2 seconds
+            setInterval(checkEmailSent, 2000);
+            // Initial check
+            checkEmailSent();
+        })();
+    </script>
+}
