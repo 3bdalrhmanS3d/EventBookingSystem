@@ -1,0 +1,263 @@
+﻿@model EventBookingSystemV1.DTOs.BookingCreateDto
+@{
+    ViewData["Title"] = "Book Event";
+}
+
+<link rel="stylesheet" href="~/css/booking.css" />
+
+<div class="container-admin fade-in">
+    <div class="booking-container">
+        <div class="booking-header">
+            <h1 class="booking-title">Complete Your Booking</h1>
+            <p class="booking-subtitle">You're just a few steps away from securing your spot!</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary-errors">
+                <ul>
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="booking-content">
+            <div class="booking-main">
+                <div class="card-admin">
+                    <div class="card-header-admin">
+                        <h2 class="card-title-admin">Ticket Selection</h2>
+                    </div>
+                    <div class="card-body-admin">
+                        <form asp-controller="Booking"
+                              asp-action="Create"
+                              asp-route-eventId="@Model.EventId"
+                              method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="EventId" />
+
+                            <div class="ticket-options">
+                                @foreach (var ticketType in Model.AvailableTicketTypes)
+                                {
+                                    <div class="ticket-option @(ticketType.IsAvailable ? "" : "sold-out")" data-ticket-id="@ticketType.Id">
+                                        <div class="ticket-option-header">
+                                            <div class="ticket-type">
+                                                <h3>@ticketType.Name</h3>
+                                                <p>@ticketType.Description</p>
+                                            </div>
+                                            <div class="ticket-price">
+                                                @ticketType.Price.ToString("C")
+                                            </div>
+                                        </div>
+
+                                        <div class="ticket-option-content">
+                                            @if (ticketType.IsAvailable)
+                                            {
+                                                <div class="ticket-quantity">
+                                                    <label for="quantity-@ticketType.Id">Quantity:</label>
+                                                    <div class="quantity-selector">
+                                                        <button type="button" class="quantity-btn minus" onclick="decrementQuantity('@ticketType.Id')">
+                                                            <i class="fas fa-minus"></i>
+                                                        </button>
+                                                        <input type="number" id="quantity-@ticketType.Id"
+                                                               name="TicketQuantities[@ticketType.Id]"
+                                                               value="0" min="0" max="10" class="quantity-input"
+                                                               onchange="updateTotals()" />
+                                                        <button type="button" class="quantity-btn plus" onclick="incrementQuantity('@ticketType.Id')">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="sold-out-badge">Sold Out</div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="attendee-info">
+                                <h3>Attendee Information</h3>
+                                <div class="form-group-admin">
+                                    <label asp-for="Name" class="form-label-admin">Full Name</label>
+                                    <input asp-for="Name" class="form-control-admin" required />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group-admin">
+                                    <label asp-for="Email" class="form-label-admin">Email Address</label>
+                                    <input asp-for="Email" class="form-control-admin" required />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                            </div>
+
+                            <div class="booking-actions">
+                                <a asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId" class="btn-admin btn-outline-admin">
+                                    <i class="fas fa-arrow-left mr-2"></i> Back to Event
+                                </a>
+                                <button type="submit" id="booking-submit" class="btn-admin btn-primary-admin" disabled>
+                                    <i class="fas fa-ticket-alt mr-2"></i> Complete Booking
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="booking-sidebar">
+                <div class="card-admin booking-summary">
+                    <div class="card-header-admin card-header-accent">
+                        <h2 class="card-title-admin">Booking Summary</h2>
+                    </div>
+                    <div class="card-body-admin">
+                        
+
+                        <div class="price-summary">
+                            <div class="price-summary-header">
+                                <h3>Price Details</h3>
+                            </div>
+                            <div id="ticket-summary" class="ticket-summary">
+                                <div class="no-tickets-message">No tickets selected</div>
+                            </div>
+                            <div class="price-total">
+                                <div class="price-label">Total</div>
+                                <div id="total-price" class="price-value">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-admin booking-info">
+                    <div class="card-body-admin">
+                        <div class="info-item">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Tickets are non-refundable after purchase.</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Please arrive 15 minutes before the event starts.</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>E-tickets will be sent to your email after booking.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Ticket quantities and prices
+        const ticketPrices = {
+        @foreach (var ticket in Model.AvailableTicketTypes)
+        {
+            <text>'@ticket.Id': @ticket.Price.ToString("F2"),</text>
+        }
+        };
+
+        // Ticket names mapping
+        const ticketNames = {
+        @foreach (var ticket in Model.AvailableTicketTypes)
+        {
+            <text>'@ticket.Id': '@ticket.Name',</text>
+        }
+        };
+
+        // Update totals when quantity changes
+        function updateTotals() {
+            let totalQuantity = 0;
+            let totalPrice = 0;
+            const ticketSummary = document.getElementById('ticket-summary');
+            ticketSummary.innerHTML = '';
+
+            // Calculate totals
+            Object.keys(ticketPrices).forEach(ticketId => {
+                const quantityInput = document.getElementById(`quantity-${ticketId}`);
+                if (!quantityInput) return;
+
+                const quantity = parseInt(quantityInput.value);
+
+                if (quantity > 0) {
+                    totalQuantity += quantity;
+                    const price = ticketPrices[ticketId];
+                    const subtotal = quantity * price;
+                    totalPrice += subtotal;
+
+                    // Add to summary
+                    const ticketName = ticketNames[ticketId];
+                    const ticketRow = document.createElement('div');
+                    ticketRow.className = 'ticket-row';
+                    ticketRow.innerHTML = `
+                        <div class="ticket-detail">
+                            <span class="ticket-name">${ticketName}</span>
+                            <span class="ticket-count">x${quantity}</span>
+                        </div>
+                        <div class="ticket-subtotal">$${subtotal.toFixed(2)}</div>
+                    `;
+                    ticketSummary.appendChild(ticketRow);
+                }
+            });
+
+            // Show no tickets message if none selected
+            if (totalQuantity === 0) {
+                ticketSummary.innerHTML = '<div class="no-tickets-message">No tickets selected</div>';
+                document.getElementById('booking-submit').disabled = true;
+            } else {
+                document.getElementById('booking-submit').disabled = false;
+            }
+
+            // Update total price
+            document.getElementById('total-price').textContent = `$${totalPrice.toFixed(2)}`;
+        }
+
+        // Increment quantity
+        function incrementQuantity(ticketId) {
+            const input = document.getElementById(`quantity-${ticketId}`);
+            const currentValue = parseInt(input.value);
+            if (currentValue < parseInt(input.max)) {
+                input.value = currentValue + 1;
+                updateTotals();
+            }
+        }
+
+        // Decrement quantity
+        function decrementQuantity(ticketId) {
+            const input = document.getElementById(`quantity-${ticketId}`);
+            const currentValue = parseInt(input.value);
+            if (currentValue > parseInt(input.min)) {
+                input.value = currentValue - 1;
+                updateTotals();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure form is properly initialized
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const totalQuantity = Object.keys(ticketPrices).reduce((total, ticketId) => {
+                    const input = document.getElementById(`quantity-${ticketId}`);
+                    return total + (input ? parseInt(input.value) : 0);
+                }, 0);
+
+                if (totalQuantity === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one ticket to continue.');
+                    return false;
+                }
+
+                return true;
+            });
+
+            updateTotals();
+        });
+    </script>
+}

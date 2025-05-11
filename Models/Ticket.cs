@@ -3,6 +3,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EventBookingSystemV1.Models
 {
+    public enum TicketT
+    {
+        Regular,
+        VIP,
+        Student,
+        Early
+    }
+
     public class Ticket : ISoftDelete
     {
         [Key]
@@ -11,7 +19,7 @@ namespace EventBookingSystemV1.Models
         public required int BookingId { get; set; }
         [ForeignKey("BookingId")]
         public virtual Booking Booking { get; set; }
-        public string TicketType { get; set; }
+        public TicketT TicketType { get; set; }
         public decimal Price { get; set; }
         public bool IsDeleted { get; set; }
 

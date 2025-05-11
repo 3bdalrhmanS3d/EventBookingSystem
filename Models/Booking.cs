@@ -21,5 +21,6 @@ namespace EventBookingSystemV1.Models
         public required DateTimeOffset BookedAt { get; set; } = DateTimeOffset.UtcNow;
 
         public virtual ICollection<Ticket> Tickets { get; set; }
+        public string BookingReference { get; internal set; }
     }
 }

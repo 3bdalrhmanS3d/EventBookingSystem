@@ -1,0 +1,144 @@
+﻿@model BookingConfirmationViewModel
+@{
+    ViewData["Title"] = "Booking Confirmation";
+}
+
+<link rel="stylesheet" href="~/css/booking.css" />
+
+
+<div class="container-admin fade-in">
+    <div class="confirmation-container">
+        <div class="confirmation-header">
+            <div class="confirmation-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1 class="confirmation-title">Booking Confirmed!</h1>
+            <p class="confirmation-subtitle">Your tickets have been reserved successfully.</p>
+        </div>
+
+        <div class="confirmation-content">
+            <div class="card-admin">
+                <div class="card-header-admin card-header-accent">
+                    <h2 class="card-title-admin">Booking Details</h2>
+                </div>
+                <div class="card-body-admin">
+                    <div class="booking-details">
+                        <div class="booking-reference">
+                            <span class="label">Booking Reference:</span>
+                            <span class="value">@Model.BookingReference</span>
+                        </div>
+
+                        <div class="event-summary">
+                            <div class="event-image">
+                                <img src="@Model.EventImageUrl" alt="@Model.EventTitle" />
+                            </div>
+                            <div class="event-info">
+                                <h3 class="event-title">@Model.EventTitle</h3>
+                                <div class="event-meta">
+                                    <div class="event-meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>@Model.EventDate.ToString("MMMM d, yyyy")</span>
+                                    </div>
+                                    <div class="event-meta-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>@Model.EventDate.ToString("h:mm tt")</span>
+                                    </div>
+                                    <div class="event-meta-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>@Model.EventVenue</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ticket-details">
+                            <h3>Ticket Information</h3>
+                            <div class="ticket-list">
+                                @foreach (var ticket in Model.Tickets)
+                                {
+                                    <div class="ticket-item">
+                                        <div class="ticket-type">@ticket.TicketType</div>
+                                        <div class="ticket-quantity">@ticket.Quantity</div>
+                                        <div class="ticket-price">@ticket.Price.ToString("C")</div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="ticket-total">
+                                <span class="label">Total Amount:</span>
+                                <span class="value">@Model.TotalAmount.ToString("C")</span>
+                            </div>
+                        </div>
+
+                        <div class="attendee-details">
+                            <h3>Attendee Information</h3>
+                            <div class="attendee-info">
+                                <div class="info-item">
+                                    <span class="label">Name:</span>
+                                    <span class="value">@Model.AttendeeName</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Email:</span>
+                                    <span class="value">@Model.AttendeeEmail</span>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="confirmation-actions">
+                <a href="mailto:?subject=My Tickets for @Model.EventTitle&body=I've booked tickets for @Model.EventTitle on @Model.EventDate.ToString("MMMM d, yyyy") at @Model.EventDate.ToString("h:mm tt"). My booking reference is @Model.BookingReference." class="btn-admin btn-outline-admin">
+                    <i class="fas fa-envelope mr-2"></i> Email Details
+                </a>
+                <a href="javascript:window.print()" class="btn-admin btn-outline-admin">
+                    <i class="fas fa-print mr-2"></i> Print Tickets
+                </a>
+                <a asp-controller="Profile" asp-action="Bookings" class="btn-admin btn-outline-admin">
+                    <i class="fas fa-list mr-2"></i> My Bookings
+                </a>
+                <a asp-controller="Events" asp-action="Index" class="btn-admin btn-primary-admin">
+                    <i class="fas fa-calendar-alt mr-2"></i> Browse More Events
+                </a>
+            </div>
+
+            <div class="confirmation-info">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3>Check Your Email</h3>
+                        <p>We've sent your e-tickets to <strong>@Model.AttendeeEmail</strong>. Please check your inbox (and spam folder).</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3>Mobile Tickets</h3>
+                        <p>You can access your tickets anytime from your account or the email we sent you.</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3>Need Help?</h3>
+                        <p>If you have any questions, please contact our support team at <a href="mailto:support@example.com">support@example.com</a>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        
+    </style>
+}
