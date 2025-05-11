@@ -1002,3 +1002,74 @@ textarea.form-control-admin {
         display: none;
     }
 }
+
+/* Add these dark mode specific styles to your admin.css file */
+
+[data-theme="dark"] .admin-container {
+    background-color: var(--background-light);
+}
+
+[data-theme="dark"] .admin-sidebar {
+    background-color: var(--background-color);
+    border-right-color: var(--border-color);
+}
+
+[data-theme="dark"] .admin-sidebar-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .admin-menu-item {
+    color: var(--text-light);
+}
+
+    [data-theme="dark"] .admin-menu-item:hover {
+        background-color: var(--background-light);
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] .admin-menu-item.active {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+[data-theme="dark"] .admin-content {
+    background-color: var(--background-light);
+}
+
+[data-theme="dark"] .admin-header {
+    background-color: var(--background-color);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .admin-card {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .admin-table {
+    background-color: var(--background-color);
+}
+
+    [data-theme="dark"] .admin-table th {
+        background-color: var(--background-light);
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] .admin-table td {
+        border-top-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .admin-table tr:hover {
+        background-color: var(--background-light);
+    }
+
+[data-theme="dark"] .admin-form-control {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+    [data-theme="dark"] .admin-form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }

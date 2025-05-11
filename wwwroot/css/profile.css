@@ -378,3 +378,81 @@
         flex-direction: column;
     }
 }
+
+
+/* Add these dark mode specific styles to your profile.css file */
+
+[data-theme="dark"] .profile-nav {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .profile-nav-item {
+    color: var(--text-light);
+}
+
+    [data-theme="dark"] .profile-nav-item:hover {
+        background-color: var(--background-light);
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] .profile-nav-item.active {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+[data-theme="dark"] .page-title-admin {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .page-subtitle-admin {
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .ticket-card {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .ticket-header {
+    background-color: var(--background-light);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .ticket-event-title {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .ticket-detail {
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .ticket-footer {
+    background-color: var(--background-light);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .empty-state-title {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .empty-state-description {
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .modal-content {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .close {
+    color: var(--text-color);
+}

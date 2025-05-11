@@ -639,3 +639,55 @@ textarea.form-control {
         justify-content: space-between;
     }
 }
+
+/* Add these dark mode specific styles to your event.css file */
+
+[data-theme="dark"] .event-card {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .event-card-title {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .event-card-description {
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .event-card-footer {
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .event-card-category {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: var(--primary-color);
+}
+
+[data-theme="dark"] .event-date-badge {
+    background-color: var(--primary-color);
+}
+
+[data-theme="dark"] .events-hero {
+    background: linear-gradient(to right, rgba(16, 185, 129, 0.9), rgba(15, 118, 110, 0.9)), url('/images/hero-bg.jpg');
+}
+
+[data-theme="dark"] .events-empty {
+    background-color: var(--background-light);
+}
+
+[data-theme="dark"] .pagination-link {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+    [data-theme="dark"] .pagination-link:hover {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    [data-theme="dark"] .pagination-link.active {
+        background-color: var(--primary-color);
+        color: white;
+    }

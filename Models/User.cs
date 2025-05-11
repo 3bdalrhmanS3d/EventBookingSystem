@@ -16,8 +16,7 @@ namespace EventBookingSystemV1.Models
         public required string FullName { get; set; }
         public required string Email { get; set; }
         public string PasswordHash { get; set; }
-        public required UserRole Role { get; set; } = UserRole.User;
-        public string ProfilePicture { get; set; } 
+        public required UserRole Role { get; set; } = UserRole.User; 
         public bool IsDeleted { get; set; }
         public bool IsActive { get; set; }
         public required DateTimeOffset BirthDate { get; set; }

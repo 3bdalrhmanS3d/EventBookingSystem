@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventBookingSystemV1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250511012715_M2")]
-    partial class M2
+    [Migration("20250511173851_initM")]
+    partial class initM
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -377,10 +377,6 @@ namespace EventBookingSystemV1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProfilePicture")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
@@ -428,7 +424,7 @@ namespace EventBookingSystemV1.Migrations
                     b.HasOne("EventBookingSystemV1.Models.User", "User")
                         .WithMany("AccountActivation")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -439,13 +435,13 @@ namespace EventBookingSystemV1.Migrations
                     b.HasOne("EventBookingSystemV1.Models.Event", "Event")
                         .WithMany("Bookings")
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EventBookingSystemV1.Models.User", "User")
                         .WithMany("Bookings")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Event");
@@ -458,13 +454,13 @@ namespace EventBookingSystemV1.Migrations
                     b.HasOne("EventBookingSystemV1.Models.EventCategory", "Category")
                         .WithMany("Events")
                         .HasForeignKey("EventCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EventBookingSystemV1.Models.Venue", "Venue")
                         .WithMany("Events")
                         .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -477,13 +473,13 @@ namespace EventBookingSystemV1.Migrations
                     b.HasOne("EventBookingSystemV1.Models.Event", "Event")
                         .WithMany()
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EventBookingSystemV1.Models.User", "User")
                         .WithMany("Favorites")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Event");
@@ -496,7 +492,7 @@ namespace EventBookingSystemV1.Migrations
                     b.HasOne("EventBookingSystemV1.Models.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -507,7 +503,7 @@ namespace EventBookingSystemV1.Migrations
                     b.HasOne("EventBookingSystemV1.Models.User", "User")
                         .WithMany("PasswordResetTokens")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -518,13 +514,13 @@ namespace EventBookingSystemV1.Migrations
                     b.HasOne("EventBookingSystemV1.Models.Event", "Event")
                         .WithMany("Reviews")
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EventBookingSystemV1.Models.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Event");
@@ -537,7 +533,7 @@ namespace EventBookingSystemV1.Migrations
                     b.HasOne("EventBookingSystemV1.Models.Booking", "Booking")
                         .WithMany("Tickets")
                         .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Booking");

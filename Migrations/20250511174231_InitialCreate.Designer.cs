@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventBookingSystemV1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250511002211_M1")]
-    partial class M1
+    [Migration("20250511174231_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -106,6 +106,10 @@ namespace EventBookingSystemV1.Migrations
 
                     b.Property<DateTimeOffset>("BookedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("BookingReference")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("EventId")
                         .HasColumnType("int");
@@ -370,10 +374,6 @@ namespace EventBookingSystemV1.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProfilePicture")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

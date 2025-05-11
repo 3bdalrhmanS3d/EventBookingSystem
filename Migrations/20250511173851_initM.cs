@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EventBookingSystemV1.Migrations
 {
     /// <inheritdoc />
-    public partial class initM1 : Migration
+    public partial class initM : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,20 +41,6 @@ namespace EventBookingSystemV1.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EventCategories", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tags",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tags", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -203,7 +189,8 @@ namespace EventBookingSystemV1.Migrations
                     UserId = table.Column<int>(type: "int", nullable: false),
                     EventId = table.Column<int>(type: "int", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    BookedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    BookedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    BookingReference = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -218,33 +205,6 @@ namespace EventBookingSystemV1.Migrations
                         name: "FK_Bookings_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "EventTags",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    EventId = table.Column<int>(type: "int", nullable: false),
-                    TagId = table.Column<int>(type: "int", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EventTags", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_EventTags_Events_EventId",
-                        column: x => x.EventId,
-                        principalTable: "Events",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_EventTags_Tags_TagId",
-                        column: x => x.TagId,
-                        principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                 });
@@ -314,7 +274,7 @@ namespace EventBookingSystemV1.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: false),
-                    TicketType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TicketType = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -363,16 +323,6 @@ namespace EventBookingSystemV1.Migrations
                 name: "IX_Events_VenueId",
                 table: "Events",
                 column: "VenueId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EventTags_EventId",
-                table: "EventTags",
-                column: "EventId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EventTags_TagId",
-                table: "EventTags",
-                column: "TagId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Favorites_EventId",
@@ -428,9 +378,6 @@ namespace EventBookingSystemV1.Migrations
                 name: "AuditLogs");
 
             migrationBuilder.DropTable(
-                name: "EventTags");
-
-            migrationBuilder.DropTable(
                 name: "Favorites");
 
             migrationBuilder.DropTable(
@@ -444,9 +391,6 @@ namespace EventBookingSystemV1.Migrations
 
             migrationBuilder.DropTable(
                 name: "Tickets");
-
-            migrationBuilder.DropTable(
-                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Bookings");
