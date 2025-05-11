@@ -42,7 +42,7 @@ namespace EventBookingSystemV1.DTOs
         [Required(ErrorMessage = "Birth date is required.")]
         [DataType(DataType.Date)]
         [Display(Name = "Birth Date")]
-        public DateTimeOffset BirthDate { get; set; }
+        public required DateTimeOffset BirthDate { get; set; }
 
         [MustBeTrue(ErrorMessage = "You must accept the terms and conditions.")]
         [Display(Name = "I agree to the Terms & Conditions")]

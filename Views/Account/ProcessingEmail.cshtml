@@ -1,5 +1,5 @@
 ﻿@{
-    Layout = "_Layout";
+    Layout = null;
     ViewData["Title"] = "Processing...";
     var email = (string)ViewData["Email"];
     var type = (string)ViewData["Type"];
@@ -8,24 +8,38 @@
         ? Url.Action("VerifyEmail", "Account", new { email = email })
         : Url.Action("ForgotPasswordConfirmation", "Account");
 }
-
-<div class="container text-center py-5">
-    <h2 class="mb-4">One moment please...</h2>
-    <p>We're sending an email to <strong>@email</strong>. This may take a few seconds.</p>
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="/css/email-processing.css" rel="stylesheet" />
+    <title>@ViewData["Title"]</title>
+</head>
+<body>
+    <div class="auth-container processing-container">
+        <div class="auth-icon">
+            <i class="bi bi-envelope-paper"></i>
         </div>
-    </div>
-    <p><small>If it takes too long, please check your spam folder.</small></p>
-</div>
+        <h1 class="processing-title">One moment please...</h1>
+        <p class="processing-subtitle">We're sending an email to <strong>@email</strong>. This may take a few seconds.</p>
 
-@section Scripts {
+        <div class="spinner-container">
+            <div class="spinner" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <p class="processing-note">If it takes too long, please check your spam folder.</p>
+    </div>
+
     <script>
         (() => {
             const email = '@email';
             const type = '@type';
             const redirectUrl = '@redirectUrl';
+
             function checkEmailSent() {
                 fetch(`/account/email-sent-check?email=${encodeURIComponent(email)}&type=${type}`)
                     .then(response => response.json())
@@ -35,10 +49,13 @@
                         }
                     });
             }
+
             // Poll every 2 seconds
             setInterval(checkEmailSent, 2000);
+
             // Initial check
             checkEmailSent();
         })();
     </script>
-}
+</body>
+</html>

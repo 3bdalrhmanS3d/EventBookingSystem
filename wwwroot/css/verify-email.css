@@ -1,0 +1,65 @@
+/* Import base auth styles */
+@import Url('auth-base.css');
+
+/* VerifyEmail specific styles */
+.auth-container.verify-container {
+    max-width: 550px;
+    text-align: center;
+}
+
+.code-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: var(--space-6);
+}
+
+.code-box {
+    width: 60px;
+    height: 70px;
+    font-size: 2rem;
+    text-align: center;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    transition: border-color 0.2s;
+}
+
+    .code-box:focus {
+        border-color: var(--primary-color);
+        outline: 0;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    .code-box.valid {
+        border-color: var(--success-color);
+        background-color: var(--success-light);
+    }
+
+    .code-box.invalid {
+        border-color: var(--error-color);
+        background-color: var(--error-light);
+    }
+
+.resend-link {
+    display: inline-block;
+    margin-top: var(--space-4);
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+    .resend-link:hover {
+        text-decoration: underline;
+    }
+
+.verification-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: var(--space-4);
+}
+
+.timer {
+    display: inline-block;
+    margin-top: var(--space-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+}
