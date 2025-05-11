@@ -10,14 +10,11 @@ namespace EventBookingSystemV1.Controllers
 {
     [Route("admin")]
     [Authorize(Roles = nameof(UserRole.Admin))]
-    public class AdminController : Controller
+    public class AdminController : BaseController
     {
-        private const int PageSize = 20;
-        private readonly ApplicationDbContext _context;
-
-        public AdminController(ApplicationDbContext context)
+        public AdminController(ApplicationDbContext context, IWebHostEnvironment env) : base(context, env)
         {
-            _context = context;
+
         }
 
         /// <summary>
@@ -157,6 +154,7 @@ namespace EventBookingSystemV1.Controllers
                 {
                     Id = e.Id,
                     Title = e.Title,
+                    Description = e.Description,
                     CategoryName = e.Category.Name,
                     VenueName = e.Venue.Name,
                     Date = e.Date,
@@ -199,12 +197,6 @@ namespace EventBookingSystemV1.Controllers
                 return RedirectToAction(nameof(Events));
             }
 
-            // then load related collections separately
-            var tagNames = await _context.EventTags
-                .Where(et => et.EventId == id)
-                .Select(et => et.Tag.Name)
-                .ToListAsync();
-
             var bookings = await _context.Bookings
                 .Where(b => b.EventId == id)
                 .Select(b => new BookingInfoViewModel
@@ -238,7 +230,6 @@ namespace EventBookingSystemV1.Controllers
                 Date = ev.Date,
                 Price = ev.Price,
                 ImageUrl = ev.ImageUrl,
-                Tags = tagNames,
                 Bookings = bookings,
                 Reviews = reviews
             };
@@ -410,26 +401,6 @@ namespace EventBookingSystemV1.Controllers
             await LogAuditAsync("User", id, "Deactivate", new { user.Email });
 
             return RedirectToAction(nameof(Users));
-        }
-
-
-        /// <summary>
-        /// Write a new AuditLog entry to the database.
-        /// </summary>
-        private async Task LogAuditAsync(string entityName, int entityId, string action, object changes)
-        {
-            var username = User.Identity?.Name ?? "System";
-            var log = new AuditLog
-            {
-                EntityName = entityName,
-                EntityId = entityId,
-                Action = action,            // e.g. "Delete", "Activate", "Deactivate"
-                PerformedBy = username,
-                PerformedAt = DateTimeOffset.UtcNow,
-                ChangesJson = JsonSerializer.Serialize(changes)
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
         }
 
         // GET /admin/audit

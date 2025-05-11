@@ -1,111 +1,266 @@
-﻿@model EventBookingSystemV1.ViewModels.EventDetailsViewModel
+﻿@model EventDetailsViewModel
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Event Details";
 }
-<link rel="stylesheet" href="~/css/admin.css" />
 
-<div class="container-admin">
-    <a href="javascript:history.back()" class="btn-admin mb-3">← Back</a>
-    <h2>Event Details</h2>
+<link rel="stylesheet" href="~/css/event.css" />
 
-    <div class="card-admin mb-4">
-        <div class="card-body-admin d-flex gap-4">
-            <img src="@Model.ImageUrl" alt="@Model.Title" class="event-image" />
-            <div>
-                <h3>@Model.Title</h3>
-                <p>@Model.Description</p>
-                <dl class="row">
-                    <dt class="col-sm-3">Category</dt>
-                    <dd class="col-sm-9">@Model.Category</dd>
+<style>
+    
+    .star-rating-input {
+        display: inline-flex;
+        /* show largest star on the left */
+        flex-direction: row-reverse;
+    }
 
-                    <dt class="col-sm-3">Venue</dt>
-                    <dd class="col-sm-9">@Model.Venue</dd>
+        .star-rating-input input[type="radio"] {
+            display: none; /* hide native radios */
+        }
 
-                    <dt class="col-sm-3">Date</dt>
-                    <dd class="col-sm-9">@Model.Date.ToString("yyyy-MM-dd HH:mm")</dd>
+        .star-rating-input label {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #ccc; /* unselected */
+            margin: 0 0.1rem;
+            transition: color 0.2s;
+        }
 
-                    <dt class="col-sm-3">Price</dt>
-                    <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
+            .star-rating-input /* when you hover any star */
+            label:hover,
+            .star-rating-input /* hover plus any star after it */
+            label:hover ~ label,
+            .star-rating-input /* your checked-input’s own label */
+            input:checked + label,
+            .star-rating-input /* plus any label after that one */
+            input:checked + label ~ label {
+                color: #f59e0b; /* the “gold” color */
+            }
 
-                    <dt class="col-sm-3">Tags</dt>
-                    <dd class="col-sm-9">
-                        @if (Model.Tags.Any())
-                        {
-                            @foreach (var tag in Model.Tags)
+        /* Optional reset “×” button styling */
+        .star-rating-input .btn-reset-rating {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: #999;
+            margin-left: 0.5rem;
+            transition: color 0.2s;
+        }
+
+            .star-rating-input .btn-reset-rating:hover {
+                color: #e53e3e;
+            }
+
+
+</style>
+<div class="container-admin fade-in">
+    <div class="card-admin">
+        <div class="card-header-admin card-header-accent">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="card-title-admin mb-0">Event Details</h1>
+                <a href="@Url.Action("Events", "Admin")" class="btn-outline-admin">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Events
+                </a>
+            </div>
+        </div>
+
+
+        <div class="card-body-admin">
+            <div class="row-admin">
+                <div class="col-admin-4">
+                    <!-- صورة ومعلومات سريعة -->
+                    <div class="card-admin">
+                        <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/placeholder.jpg" : Model.ImageUrl)"
+                             class="card-img-top" alt="@Model.Title"
+                             style="height: 250px; object-fit: cover;">
+                        <div class="card-body-admin">
+                            <h3 class="card-title-admin">@Model.Title</h3>
+                            <p class="card-subtitle-admin">
+                                <i class="fas fa-tag mr-1"></i> @Model.Category
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-map-marker-alt mr-1"></i> @Model.Venue
+                            </p>
+                            <ul class="list-group mt-4">
+                                <li class="d-flex justify-content-between align-items-center p-3 border-bottom-admin">
+                                    <span><i class="fas fa-calendar-day mr-2"></i> Date</span>
+                                    <span class="font-semibold">@Model.Date.LocalDateTime </span>
+                                </li>
+                                <li class="d-flex justify-content-between align-items-center p-3 border-bottom-admin">
+                                    <span><i class="fas fa-dollar-sign mr-2"></i> Price</span>
+                                    <span class="font-semibold">@Model.Price.ToString("0.00")</span>
+                                </li>
+                                <li class="d-flex justify-content-between align-items-center p-3">
+                                    <span><i class="fas fa-ticket-alt mr-2"></i> Bookings</span>
+                                    <span class="badge-admin badge-admin-primary">@Model.Bookings.Count</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-footer-admin">
+                            <form method="post" action="@Url.Action("DeleteEvent", "Admin", new { id = Model.Id })">
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn-admin btn-danger-admin btn-admin-block"
+                                        onclick="return confirm('Are you sure you want to delete this event? This action cannot be undone.')">
+                                    <i class="fas fa-trash mr-2"></i> Delete Event
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-admin-8">
+                    <!-- وصف الحدث -->
+                    <div class="card-admin mb-4">
+                        <div class="card-header-admin">
+                            <h3 class="card-title-admin">Event Description</h3>
+                        </div>
+                        <div class="card-body-admin">
+                            <p>@Model.Description</p>
+                        </div>
+                    </div>
+
+                    <!-- قائمة الحجوزات -->
+                    <div class="card-admin mb-4">
+                        <div class="card-header-admin">
+                            <h3 class="card-title-admin">Bookings</h3>
+                        </div>
+                        <div class="card-body-admin">
+                            @if (Model.Bookings.Any())
                             {
-                                <span class="badge bg-info me-1">@tag</span>
+                                <div class="table-responsive">
+                                    <table class="table-admin table-admin-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>User</th>
+                                                <th>Email</th>
+                                                <th>Tickets</th>
+                                                <th>Booked On</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var booking in Model.Bookings)
+                                            {
+                                                <tr>
+                                                    <td>@booking.Id</td>
+                                                    <td>@booking.UserName</td>
+                                                    <td>@booking.UserEmail</td>
+                                                    <td>@booking.TicketCount</td>
+                                                    <td>@booking.BookedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
                             }
-                        }
-                        else
-                        {
-                            <span>-</span>
-                        }
-                    </dd>
-                </dl>
+                            else
+                            {
+                                <div class="alert-admin alert-admin-info">
+                                    <i class="fas fa-info-circle mr-2"></i> No bookings found.
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- قائمة المراجعات -->
+                    <div class="card-admin mb-4">
+                        <div class="card-header-admin">
+                            <h3 class="card-title-admin">Reviews</h3>
+                        </div>
+                        <div class="card-body-admin">
+                            @if (Model.Reviews.Any())
+                            {
+                                @foreach (var review in Model.Reviews)
+                                {
+                                    <div class="card-admin mb-3">
+                                        <div class="card-body-admin">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 class="mb-0">@review.Reviewer</h5>
+                                                <div>
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        if (i <= review.Rating)
+                                                        {
+                                                            <i class="fas fa-star text-warning-admin"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="far fa-star text-muted"></i>
+                                                        }
+                                                    }
+                                                </div>
+                                            </div>
+                                            <p>@review.Comment</p>
+                                            <div class="text-muted text-sm">
+                                                <i class="fas fa-clock mr-1"></i> @review.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="alert-admin alert-admin-info">
+                                    <i class="fas fa-info-circle mr-2"></i> No reviews yet.
+                                </div>
+                            }
+
+                            <!-- Review Form -->
+                            <div class="review-form mt-4 p-4 border border-2 rounded">
+                                <h4 class="mb-3">Write a Review</h4>
+                                <form asp-controller="Profile" asp-action="CreateReview" method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <!-- pass the event ID as a hidden -->
+                                    <input asp-for="Id" type="hidden" />
+
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Rating</label>
+                                        <div class="star-rating-input">
+                                            @for (int i = 5; i >= 1; i--)
+                                            {
+                                                <input type="radio" id="star@i" name="Rating" value="@i" required />
+                                                <label for="star@i" title="@i stars">
+                                                    <i class="fas fa-star"></i>
+                                                </label>
+                                            }
+                                            <button type="button" id="resetRating" class="btn-reset-rating" title="Clear rating">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Comment</label>
+                                        <textarea name="Comment"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  placeholder="Share your experience..."
+                                                  required></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn-admin btn-primary-admin">
+                                        <i class="fas fa-paper-plane mr-2"></i> Submit Review
+                                    </button>
+                                </form>
+                            </div>
+
+                            
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-    <h3>Bookings (@Model.Bookings.Count)</h3>
-    @if (Model.Bookings.Any())
-    {
-        <table class="table-admin mb-4">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>User Name</th>
-                    <th>User Email</th>
-                    <th>Booked At</th>
-                    <th>Tickets</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var b in Model.Bookings)
-                {
-                    <tr>
-                        <td>@b.Id</td>
-                        <td>@b.UserName</td>
-                        <td>@b.UserEmail</td>
-                        <td>@b.BookedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@b.TicketCount</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>No bookings for this event.</p>
-    }
-
-    <h3>Reviews (@Model.Reviews.Count)</h3>
-    @if (Model.Reviews.Any())
-    {
-        <table class="table-admin">
-            <thead>
-                <tr>
-                    <th>Reviewer</th>
-                    <th>Rating</th>
-                    <th>Comment</th>
-                    <th>Created At</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in Model.Reviews)
-                {
-                    <tr>
-                        <td>@r.Reviewer</td>
-                        <td>@r.Rating</td>
-                        <td>@r.Comment</td>
-                        <td>@r.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>No reviews yet.</p>
-    }
 </div>
+@section Scripts {
+    <script>
+        document.getElementById('resetRating')
+          .addEventListener('click', function() {
+            document
+              .querySelectorAll('.star-rating-input input[type="radio"]')
+              .forEach(rb => rb.checked = false);
+          });
+    </script>
+}

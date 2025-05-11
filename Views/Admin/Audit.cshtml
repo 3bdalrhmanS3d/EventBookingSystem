@@ -1,53 +1,115 @@
-﻿@model IEnumerable<EventBookingSystemV1.ViewModels.AuditLogViewModel>
+﻿@model List<AuditLogViewModel>
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Audit Logs";
+    ViewData["Title"] = "Audit Log";
+    var currentPage = (int)ViewData["CurrentPage"];
+    var totalPages = (int)ViewData["TotalPages"];
 }
-<link rel="stylesheet" href="~/css/admin.css" />
 
-<div class="container-admin">
-    <a href="javascript:history.back()" class="btn-admin mb-3">&larr; Back</a>
-    <br />
-    <br />
-    <h2>Audit Logs</h2>
+<div class="container-admin fade-in">
+    <div class="card-admin">
+        <div class="card-header-admin card-header-accent">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="card-title-admin mb-0">Audit Log</h1>
+				<br />
+            </div>
+        </div>
 
-    <table class="table-admin">
-        <thead>
-            <tr>
-                <th>Entity</th>
-                <th>Entity ID</th>
-                <th>Action</th>
-                <th>By</th>
-                <th>When</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var log in Model)
+        <div class="card-body-admin">
+            <div class="table-responsive">
+                <table class="table-admin table-admin-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Type</th>
+                            <th>ID</th>
+                            <th>Action</th>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model)
+                        {
+                            <tr>
+                                <td>@log.Id</td>
+                                <td>@log.EntityName</td>
+                                <td>@log.EntityId</td>
+                                <td>
+                                    @switch (log.Action)
+                                    {
+                                        case "Create":
+                                            <span class="badge-admin badge-admin-success">Create</span>
+                                            break;
+                                        case "Update":
+                                            <span class="badge-admin badge-admin-info">Update</span>
+                                            break;
+                                        case "Delete":
+                                            <span class="badge-admin badge-admin-danger">Delete</span>
+                                            break;
+                                        case "Activate":
+                                            <span class="badge-admin badge-admin-success">Activate</span>
+                                            break;
+                                        case "Deactivate":
+                                            <span class="badge-admin badge-admin-warning">Deactivate</span>
+                                            break;
+                                        default:
+                                            <span class="badge-admin badge-admin-primary">@log.Action</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@log.PerformedBy</td>
+                                <td>@log.PerformedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                <td>
+                                    <a href="@Url.Action("AuditDetails", "Admin", new { id = log.Id })" class="btn-admin btn-admin-sm btn-info-admin">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
             {
-                <tr>
-                    <td>@log.EntityName</td>
-                    <td>@log.EntityId</td>
-                    <td>@log.Action</td>
-                    <td>@log.PerformedBy</td>
-                    <td>@log.PerformedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                    <td>
-                        <button class="btn-outline-admin btn-sm" data-bs-toggle="collapse" data-bs-target="#json-@log.Id">Show</button>
-                    </td>
-                    <td>
-                        <a href="@Url.Action("AuditDetails", "Admin", new { id = log.Id })" class="btn-outline-admin btn-sm">Details</a>
-                    </td>
-                </tr>
-                
+                <div class="alert-admin alert-admin-info">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    No audit logs found.
+                </div>
             }
-        </tbody>
-    </table>
 
-    <!-- Pagination Controls -->
-    <div class="pagination">
-        @for (int i = 1; i <= (int)ViewData["TotalPages"]!; i++)
-        {
-            <a href="@Url.Action("Audit", "Admin", new { page = i })" class="btn-outline-admin btn-sm @(i == (int)ViewData["CurrentPage"] ? "active" : "")">@i</a>
-        }
+            @if (totalPages > 1)
+            {
+                <div class="d-flex justify-content-center mt-4">
+                    <ul class="pagination-admin">
+                        @if (currentPage > 1)
+                        {
+                            <li>
+                                <a href="@Url.Action("Audit", "Admin", new { page = currentPage - 1 })">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+
+                        @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                        {
+                            <li class="@(i == currentPage ? "active" : "")">
+                                <a href="@Url.Action("Audit", "Admin", new { page = i })">@i</a>
+                            </li>
+                        }
+
+                        @if (currentPage < totalPages)
+                        {
+                            <li>
+                                <a href="@Url.Action("Audit", "Admin", new { page = currentPage + 1 })">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
     </div>
 </div>
