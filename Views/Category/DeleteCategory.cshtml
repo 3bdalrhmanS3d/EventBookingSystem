@@ -1,0 +1,85 @@
+﻿@model EventBookingSystemV1.ViewModels.CategoryViewModel
+@{
+    ViewData["Title"] = "Category Details";
+}
+
+<link rel="stylesheet" href="~/css/categories.css" />
+
+<div class="category-container">
+    <div class="category-header category-header-accent">
+        <h1 class="category-title">Category Details</h1>
+        <div>
+            <a href="@Url.Action("EditCategory", new { id = Model.Id })" class="btn-admin btn-primary-admin">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <button type="button" class="btn-admin btn-danger-admin" onclick="showDeleteModal(@Model.Id, '@Model.Name')">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+
+    <div class="category-body">
+        <div class="category-card">
+            <div class="category-card-title">
+                <i class="bi bi-tag"></i> @Model.Name
+            </div>
+
+            <div class="category-card-content">
+                <p>This category can be assigned to events to help users find and filter events by type.</p>
+
+                <!-- You could add additional information here, such as:
+                - Number of events in this category
+                - Creation date
+                - Last modified date
+                - Related categories
+                -->
+            </div>
+        </div>
+    </div>
+
+    <div class="category-footer">
+        <a href="@Url.Action("Index")" class="btn-admin">
+            <i class="bi bi-arrow-left"></i> Back to Categories
+        </a>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="delete-modal">
+    <div class="delete-modal-content">
+        <div class="delete-modal-header">
+            <h2 class="delete-modal-title">Confirm Deletion</h2>
+        </div>
+        <div class="delete-modal-body">
+            <p>Are you sure you want to delete the category "<span id="categoryName"></span>"?</p>
+            <p class="text-danger">This action cannot be undone. Events in this category will be affected.</p>
+        </div>
+        <div class="delete-modal-footer">
+            <button type="button" class="btn-admin" onclick="hideDeleteModal()">Cancel</button>
+            <form id="deleteForm" method="post" action="">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-admin btn-danger-admin">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showDeleteModal(id, name) {
+        document.getElementById('categoryName').textContent = name;
+        document.getElementById('deleteForm').action = '@Url.Action("DeleteCategory", "Category")/' + id;
+        document.getElementById('deleteModal').classList.add('show');
+    }
+
+    function hideDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        var modal = document.getElementById('deleteModal');
+        if (event.target === modal) {
+            hideDeleteModal();
+        }
+    });
+</script>

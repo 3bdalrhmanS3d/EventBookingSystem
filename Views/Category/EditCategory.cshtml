@@ -1,0 +1,39 @@
+﻿@model EventBookingSystemV1.DTOs.CategoryDto
+@{
+    ViewData["Title"] = "Edit Category";
+}
+
+<link rel="stylesheet" href="~/css/categories.css" />
+
+<div class="category-container">
+    <div class="category-header category-header-accent">
+        <h1 class="category-title">Edit Category</h1>
+    </div>
+
+    <div class="category-body">
+        <form asp-action="EditCategory" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="category-form-group">
+                <label asp-for="Name" class="category-form-label">Category Name</label>
+                <input asp-for="Name" class="category-form-control" placeholder="Enter category name" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+                <small class="text-muted">Choose a descriptive name for the event category (e.g., "Concerts", "Workshops", "Sports")</small>
+            </div>
+
+            <div class="category-footer">
+                <a href="@Url.Action("Index")" class="btn-admin">Cancel</a>
+                <button type="submit" class="btn-admin btn-primary-admin">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
