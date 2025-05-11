@@ -1,0 +1,72 @@
+﻿@model List<EventBookingSystemV1.ViewModels.EventViewModel>
+@{
+    ViewData["Title"] = "My Favorites";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" />
+
+<div class="profile-container">
+    <div class="profile-header profile-header-accent">
+        <h1 class="profile-title">My Favorites</h1>
+    </div>
+
+    <div class="profile-body">
+        @await Html.PartialAsync("_ProfileNav")
+
+        @if (Model.Count == 0)
+        {
+            <div class="text-center p-5">
+                <i class="bi bi-heart" style="font-size: 3rem; color: var(--text-light);"></i>
+                <p class="mt-3">You haven't added any events to your favorites yet.</p>
+                <a href="/events" class="btn-admin btn-primary-admin mt-3">
+                    <i class="bi bi-search"></i> Browse Events
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="profile-grid">
+                @foreach (var evt in Model)
+                {
+                    <div class="profile-card favorite-card">
+                        @if (!string.IsNullOrEmpty(evt.ImageUrl))
+                        {
+                            <img src="@evt.ImageUrl" alt="@evt.Title" class="event-image" />
+                        }
+                        else
+                        {
+                            <img src="/placeholder.svg?height=150&width=300" alt="Event placeholder" class="event-image" />
+                        }
+
+                        <div class="profile-card-header">
+                            <div>
+                                <h3 class="profile-card-title">@evt.Title</h3>
+                                <div class="profile-card-subtitle">
+                                    <span class="badge badge-primary">@evt.CategoryName</span>
+                                    <span class="event-date"><i class="bi bi-calendar"></i> @evt.Date.ToString("MMM d, yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="event-price">@evt.Price.ToString("C")</div>
+                        </div>
+
+                        <div class="profile-card-body">
+                            <div><i class="bi bi-geo-alt"></i> @evt.VenueName</div>
+                        </div>
+
+                        <div class="profile-card-footer">
+                            <a href="/events/@evt.Id" class="btn-admin btn-info-admin btn-admin-sm">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                            <form method="post" action="@Url.Action("ToggleFavorite", new { eventId = evt.Id })">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-admin btn-warning-admin btn-admin-sm">
+                                    <i class="bi bi-heart-fill"></i> Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,119 @@
+﻿@model MyTicketPrintViewModel
+@{
+    ViewData["Title"] = "Print Ticket";
+    Layout = "_PrintLayout"; // Create a minimal layout for printing
+}
+
+<link rel="stylesheet" href="~/css/ticket.css" asp-append-version="true" />
+
+<div class="print-ticket-container">
+    <div class="print-ticket">
+        <div class="ticket-header">
+            <div class="logo">
+                <img src="/images/logo.png" alt="Event System Logo" />
+            </div>
+            <div class="ticket-title">
+                <h1>E-TICKET</h1>
+                <div class="ticket-reference">@Model.BookingReference</div>
+            </div>
+        </div>
+
+        <div class="ticket-event-details">
+            <h2 class="event-name">@Model.EventTitle</h2>
+
+            <div class="event-info">
+                <div class="info-item">
+                    <div class="info-label">Date & Time</div>
+                    <div class="info-value">
+                        <i class="fas fa-calendar-alt"></i>
+                        @Model.EventDate.ToString("dddd, MMMM d, yyyy")
+                    </div>
+                    <div class="info-value">
+                        <i class="fas fa-clock"></i>
+                        @Model.EventDate.ToString("h:mm tt")
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Venue</div>
+                    <div class="info-value">
+                        <i class="fas fa-map-marker-alt"></i>
+                        @Model.VenueName
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Ticket Type</div>
+                    <div class="info-value ticket-type">
+                        <span class="ticket-type-badge @Model.TicketType.ToLower()">
+                            @Model.TicketType
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Price</div>
+                    <div class="info-value">
+                        <i class="fas fa-tag"></i>
+                        @Model.Price.ToString("C")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ticket-attendee">
+            <h3>Attendee Information</h3>
+            <div class="attendee-info">
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">@Model.AttendeeName</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@Model.AttendeeEmail</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ticket-qr">
+            <div id="qrCode"></div>
+            <div class="qr-info">
+                <div class="qr-label">Ticket ID: @Model.TicketId</div>
+                <div class="qr-reference">@Model.BookingReference</div>
+            </div>
+        </div>
+
+        <div class="ticket-footer">
+            <div class="ticket-notes">
+                <p>Please present this ticket (printed or on your mobile device) at the event entrance.</p>
+                <p>This ticket is valid for one person only and is non-transferable.</p>
+            </div>
+            <div class="ticket-contact">
+                <p>Questions? Contact us at support@eventbooking.com</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Generate QR code
+        new QRCode(document.getElementById('qrCode'), {
+            text: 'TICKET:@Model.TicketId|REF:@Model.BookingReference',
+            width: 128,
+            height: 128,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        // Auto print after loading
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    });
+</script>

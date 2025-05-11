@@ -1,0 +1,62 @@
+﻿@model EventBookingSystemV1.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" />
+
+<div class="profile-container">
+    <div class="profile-header profile-header-accent">
+        <h1 class="profile-title">Edit Profile</h1>
+    </div>
+
+    <div class="profile-body">
+        @await Html.PartialAsync("_ProfileNav")
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row-admin">
+                <div class="col-admin-6">
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">First Name</label>
+                        <input name="FirstName" class="profile-form-control" value="@Model.FullName.Split(' ')[0]" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-admin-6">
+                    <div class="profile-form-group">
+                        <label class="profile-form-label">Last Name</label>
+                        <input name="LastName" class="profile-form-control" value="@(Model.FullName.Split(' ').Length > 1 ? string.Join(" ", Model.FullName.Split(' ').Skip(1)) : "")" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-form-group">
+                <label class="profile-form-label">Email Address</label>
+                <input asp-for="Email" class="profile-form-control" readonly />
+                <small class="text-muted">Email address cannot be changed</small>
+            </div>
+
+            <div class="profile-form-group">
+                <label asp-for="BirthDate" class="profile-form-label">Birth Date</label>
+                <input asp-for="BirthDate" type="date" class="profile-form-control" />
+                <span asp-validation-for="BirthDate" class="text-danger"></span>
+            </div>
+
+            <div class="profile-footer">
+                <a href="@Url.Action("Index")" class="btn-admin">Cancel</a>
+                <button type="submit" class="btn-admin btn-primary-admin">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

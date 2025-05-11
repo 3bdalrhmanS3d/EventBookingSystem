@@ -1,0 +1,30 @@
+﻿@{
+    var controller = ViewContext.RouteData.Values["controller"].ToString();
+    var action = ViewContext.RouteData.Values["action"].ToString();
+
+    bool IsActive(string actionName) => action.Equals(actionName, StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="profile-nav">
+    <a href="@Url.Action("Index", "Profile")" class="profile-nav-item @(IsActive("Index") ? "active" : "")">
+        <i class="bi bi-person"></i> Profile
+    </a>
+    <a href="@Url.Action("MyBookings", "Profile")" class="profile-nav-item @(IsActive("MyBookings") ? "active" : "")">
+        <i class="bi bi-ticket-perforated"></i> My Bookings
+    </a>
+    <a href="@Url.Action("MyFavorites", "Profile")" class="profile-nav-item @(IsActive("MyFavorites") ? "active" : "")">
+        <i class="bi bi-heart"></i> Favorites
+    </a>
+    <a href="@Url.Action("MyReviews", "Profile")" class="profile-nav-item @(IsActive("MyReviews") ? "active" : "")">
+        <i class="bi bi-star"></i> Reviews
+    </a>
+    <a href="@Url.Action("MyNotifications", "Profile")" class="profile-nav-item @(IsActive("MyNotifications") ? "active" : "")">
+        <i class="bi bi-bell"></i> Notifications
+    </a>
+    <a href="@Url.Action("MyTickets", "Profile")" class="profile-nav-item @(IsActive("MyTickets") ? "active" : "")">
+        <i class="bi bi-bell"></i> My Tickets
+    </a>
+    <a href="@Url.Action("ChangePassword", "Profile")" class="profile-nav-item @(IsActive("ChangePassword") ? "active" : "")">
+        <i class="bi bi-shield-lock"></i> Security
+    </a>
+</div>

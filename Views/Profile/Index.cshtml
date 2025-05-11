@@ -1,0 +1,72 @@
+﻿@model EventBookingSystemV1.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" />
+
+<div class="profile-container">
+    <div class="profile-header profile-header-accent">
+        <h1 class="profile-title">My Profile</h1>
+        <a href="@Url.Action("Edit")" class="btn-admin btn-primary-admin">
+            <i class="bi bi-pencil"></i> Edit Profile
+        </a>
+    </div>
+
+    @{
+        var controller = ViewContext.RouteData.Values["controller"].ToString();
+        var action = ViewContext.RouteData.Values["action"].ToString();
+
+        bool IsActive(string actionName) => action.Equals(actionName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    <div class="profile-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @await Html.PartialAsync("_ProfileNav")
+
+        <div class="row-admin">
+            <div class="col-admin-4">
+                <div class="profile-avatar">
+                    @Model.FullName.Substring(0, 1)
+                </div>
+            </div>
+
+            <div class="col-admin-8">
+                <div class="profile-section">
+                    <h2 class="profile-section-title">Personal Information</h2>
+
+                    <div class="profile-detail-item">
+                        <div class="profile-detail-label">Full Name</div>
+                        <div class="profile-detail-value">@Model.FullName</div>
+                    </div>
+
+                    <div class="profile-detail-item">
+                        <div class="profile-detail-label">Email Address</div>
+                        <div class="profile-detail-value">@Model.Email</div>
+                    </div>
+
+                    <div class="profile-detail-item">
+                        <div class="profile-detail-label">Birth Date</div>
+                        <div class="profile-detail-value">@Model.BirthDate.ToString("MMMM d, yyyy")</div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h2 class="profile-section-title">Account Security</h2>
+
+                    <p>Protect your account by using a strong password and changing it regularly.</p>
+
+                    <a href="@Url.Action("ChangePassword")" class="btn-admin btn-primary-admin">
+                        <i class="bi bi-shield-lock"></i> Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

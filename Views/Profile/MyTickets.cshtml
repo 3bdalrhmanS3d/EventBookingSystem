@@ -1,0 +1,183 @@
+﻿@model List<MyTicketViewModel>
+@{
+    ViewData["Title"] = "My Tickets";
+}
+
+<div class="container-admin fade-in">
+    <div class="page-header-admin">
+        <h1 class="page-title-admin">My Tickets</h1>
+        <p class="page-subtitle-admin">View and manage all your event tickets</p>
+    </div>
+
+    <div class="card-admin">
+        <div class="card-header-admin">
+            <div class="card-header-title-wrapper">
+                <h2 class="card-title-admin">All Tickets</h2>
+                <span class="badge-admin badge-primary-admin">@Model.Count</span>
+            </div>
+            <div class="card-header-actions">
+                <div class="search-box">
+                    <input type="text" id="ticketSearch" class="form-control-admin" placeholder="Search tickets...">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+        <div class="card-body-admin">
+            @if (Model.Count == 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h3 class="empty-state-title">No Tickets Found</h3>
+                    <p class="empty-state-description">You haven't purchased any tickets yet. Browse events and book your first ticket!</p>
+                    <a href="@Url.Action("Index", "Home")" class="btn-admin btn-primary-admin">
+                        <i class="fas fa-search"></i> Browse Events
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="tickets-container">
+                    @foreach (var ticket in Model)
+                    {
+                        <div class="ticket-card" data-event="@ticket.EventTitle.ToLower()">
+                            <div class="ticket-header">
+                                <div class="ticket-type-badge @ticket.TicketType.ToString().ToLower()">
+                                    @ticket.TicketType.ToString()
+                                </div>
+                                <div class="ticket-reference">
+                                    Ref: @ticket.BookingReference
+                                </div>
+                            </div>
+                            <div class="ticket-body">
+                                <h3 class="ticket-event-title">@ticket.EventTitle</h3>
+                                <div class="ticket-details">
+                                    <div class="ticket-detail">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>@ticket.EventDate.ToString("dddd, MMMM d, yyyy")</span>
+                                    </div>
+                                    <div class="ticket-detail">
+                                        <i class="fas fa-clock"></i>
+                                        <span>@ticket.EventDate.ToString("h:mm tt")</span>
+                                    </div>
+                                    <div class="ticket-detail">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        <span>Booked on @ticket.BookingDate.ToString("MMM d, yyyy")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-footer">
+                                <a href="@Url.Action("PrintTicket", "Profile", new { id = ticket.Id })" class="btn-admin btn-outline-admin btn-sm" target="_blank">
+                                    <i class="fas fa-print"></i> Print Ticket
+                                </a>
+                                <button type="button" class="btn-admin btn-primary-admin btn-sm" onclick="showTicketQR('@ticket.Id', '@ticket.BookingReference')">
+                                    <i class="fas fa-qrcode"></i> Show QR
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination (if needed) -->
+                @if (Model.Count > 12)
+                {
+                    <div class="pagination-container">
+                        <ul class="pagination">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1" role="dialog" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrCodeModalLabel">Ticket QR Code</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrCode" class="mb-3"></div>
+                <p class="mb-1">Ticket Reference:</p>
+                <h4 id="modalTicketRef" class="font-weight-bold"></h4>
+                <p class="text-muted small mt-3">Present this QR code at the event entrance for quick check-in</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-admin btn-outline-admin" data-dismiss="modal">Close</button>
+                <a id="printLink" href="#" class="btn-admin btn-primary-admin">
+                    <i class="fas fa-print"></i> Print Ticket
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile.css" />
+    <link rel="stylesheet" href="~/css/myticket.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
+    <script>
+        // Search functionality
+        document.getElementById('ticketSearch').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tickets = document.querySelectorAll('.ticket-card');
+
+            tickets.forEach(ticket => {
+                const eventTitle = ticket.getAttribute('data-event');
+                if (eventTitle.includes(searchTerm)) {
+                    ticket.style.display = 'flex';
+                } else {
+                    ticket.style.display = 'none';
+                }
+            });
+        });
+
+        // QR Code generation
+        function showTicketQR(ticketId, reference) {
+            // Set the reference in the modal
+            document.getElementById('modalTicketRef').textContent = reference;
+
+            // Set the print link
+            document.getElementById('printLink').href = '@Url.Action("PrintTicket", "Profile")/' + ticketId;
+
+            // Generate QR code
+            const qrContainer = document.getElementById('qrCode');
+            qrContainer.innerHTML = '';
+
+            // Create QR code with ticket info
+            new QRCode(qrContainer, {
+                text: `TICKET:${ticketId}|REF:${reference}`,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Show the modal
+            $('#qrCodeModal').modal('show');
+        }
+    </script>
+}
