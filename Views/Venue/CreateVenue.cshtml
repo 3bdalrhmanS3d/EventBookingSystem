@@ -1,0 +1,55 @@
+﻿@model EventBookingSystemV1.DTOs.VenueDto
+@{
+    ViewData["Title"] = "Create Venue";
+}
+
+<link rel="stylesheet" href="~/css/venues.css" />
+
+<div class="venue-container">
+    <div class="venue-header venue-header-accent">
+        <h1 class="venue-title">Create New Venue</h1>
+    </div>
+
+    <div class="venue-body">
+        <form asp-action="CreateVenue" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="venue-form-group">
+                <label asp-for="Name" class="venue-form-label">Venue Name</label>
+                <input asp-for="Name" class="venue-form-control" placeholder="Enter venue name" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="venue-form-group">
+                <label asp-for="Address" class="venue-form-label">Address</label>
+                <input asp-for="Address" class="venue-form-control" placeholder="Enter venue address" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="venue-form-group">
+                <label asp-for="Capacity" class="venue-form-label">Capacity</label>
+                <input asp-for="Capacity" type="number" min="1" class="venue-form-control" placeholder="Enter venue capacity" />
+                <span asp-validation-for="Capacity" class="text-danger"></span>
+            </div>
+
+            <div class="venue-form-group">
+                <label asp-for="ContactInfo" class="venue-form-label">Contact Information</label>
+                <textarea asp-for="ContactInfo" class="venue-form-control" rows="3" placeholder="Enter contact information"></textarea>
+                <span asp-validation-for="ContactInfo" class="text-danger"></span>
+            </div>
+
+            <div class="venue-footer">
+                <a href="@Url.Action("Index")" class="btn-admin">Cancel</a>
+                <button type="submit" class="btn-admin btn-primary-admin">
+                    <i class="bi bi-plus-circle"></i> Create Venue
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

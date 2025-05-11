@@ -1,0 +1,111 @@
+﻿@model EventBookingSystemV1.ViewModels.VenueViewModel
+@{
+    ViewData["Title"] = "Venue Details";
+}
+
+<link rel="stylesheet" href="~/css/venues.css" />
+
+<div class="venue-container">
+    <div class="venue-header venue-header-accent">
+        <h1 class="venue-title">Venue Details</h1>
+        <div>
+            <a href="@Url.Action("EditVenue", new { id = Model.Id })" class="btn-admin btn-primary-admin">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <button type="button" class="btn-admin btn-danger-admin" onclick="showDeleteModal(@Model.Id, '@Model.Name')">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+
+    <div class="venue-body">
+        <div class="row-admin">
+            <div class="col-admin-6">
+                <div class="venue-detail-item">
+                    <div class="venue-detail-label">Venue Name</div>
+                    <div class="venue-detail-value">@Model.Name</div>
+                </div>
+            </div>
+
+            <div class="col-admin-6">
+                <div class="venue-detail-item">
+                    <div class="venue-detail-label">Capacity</div>
+                    <div class="venue-detail-value">
+                        <span class="venue-capacity-badge">
+                            <i class="bi bi-people"></i> @Model.Capacity people
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-admin-12">
+                <div class="venue-detail-item">
+                    <div class="venue-detail-label">Address</div>
+                    <div class="venue-detail-value">@Model.Address</div>
+                </div>
+            </div>
+
+            <div class="col-admin-12">
+                <div class="venue-detail-item">
+                    <div class="venue-detail-label">Contact Information</div>
+                    <div class="venue-detail-value">
+                        @if (string.IsNullOrEmpty(Model.ContactInfo))
+                        {
+                            <span class="text-muted">No contact information provided</span>
+                        }
+                        else
+                        {
+                            @Model.ContactInfo
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="venue-footer">
+        <a href="@Url.Action("Index")" class="btn-admin">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="delete-modal">
+    <div class="delete-modal-content">
+        <div class="delete-modal-header">
+            <h2 class="delete-modal-title">Confirm Deletion</h2>
+        </div>
+        <div class="delete-modal-body">
+            <p>Are you sure you want to delete the venue "<span id="venueName"></span>"?</p>
+            <p class="text-danger">This action cannot be undone.</p>
+        </div>
+        <div class="delete-modal-footer">
+            <button type="button" class="btn-admin" onclick="hideDeleteModal()">Cancel</button>
+            <form id="deleteForm" method="post" action="">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-admin btn-danger-admin">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showDeleteModal(id, name) {
+        document.getElementById('venueName').textContent = name;
+        document.getElementById('deleteForm').action = '@Url.Action("DeleteVenue", "Venue")/' + id;
+        document.getElementById('deleteModal').classList.add('show');
+    }
+
+    function hideDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        var modal = document.getElementById('deleteModal');
+        if (event.target === modal) {
+            hideDeleteModal();
+        }
+    });
+</script>
