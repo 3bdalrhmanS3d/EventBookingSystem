@@ -1,23 +1,335 @@
-﻿
-    <!-- Main content of the homepage -->
-    <div class="container">
-        <main role="main" class="pb-3">
-            <h1 class="mt-5 text-center">Welcome to Event Booking System</h1>
-            <p class="lead text-center">Manage events, bookings, and users all in one place.</p>
+﻿@model List<EventBookingSystemV1.ViewModels.EventViewModel>
+@{
+    ViewData["Title"] = "Home";
+    var currentPage = (int)ViewData["CurrentPage"];
+    var totalPages = (int)ViewData["TotalPages"];
+    var search = (string)ViewData["Search"];
+}
 
-            <!-- Buttons for sign in and sign up -->
-            <div class="d-flex justify-content-center mt-4">
-                <a href="@Url.Action("SignIn", "Account")" class="btn btn-primary btn-lg me-3">Sign In</a>
-                <a href="@Url.Action("SignUp", "Account")" class="btn btn-success btn-lg">Sign Up</a>
-            </div>
+<link rel="stylesheet" href="~/css/home.css" />
 
-            
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Discover Amazing Events</h1>
+        <p class="hero-subtitle">Find and book tickets for the best events in your area</p>
 
-            <!-- Event showcase section -->
-            <div class="mt-5">
-                <h3>Upcoming Events</h3>
-                
-            </div>
-
-        </main>
+        <div class="hero-search">
+            <form class="hero-search-form" method="get" asp-controller="Home" asp-action="Index">
+                <input type="text" name="search" class="hero-search-input" placeholder="Search for events..." value="@search">
+                <button type="submit" class="hero-search-button">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+        </div>
     </div>
+</section>
+
+<!-- Featured Categories Section -->
+<section class="featured-categories">
+    <h2 class="section-title">Popular Categories</h2>
+
+    <div class="category-grid">
+        <a href="#" class="category-card">
+            <div class="category-icon">
+                <i class="fas fa-music"></i>
+            </div>
+            <div class="category-name">Concerts</div>
+        </a>
+
+        <a href="#" class="category-card">
+            <div class="category-icon">
+                <i class="fas fa-film"></i>
+            </div>
+            <div class="category-name">Movies</div>
+        </a>
+
+        <a href="#" class="category-card">
+            <div class="category-icon">
+                <i class="fas fa-gamepad"></i>
+            </div>
+            <div class="category-name">Gaming</div>
+        </a>
+
+        <a href="#" class="category-card">
+            <div class="category-icon">
+                <i class="fas fa-palette"></i>
+            </div>
+            <div class="category-name">Art</div>
+        </a>
+
+        <a href="#" class="category-card">
+            <div class="category-icon">
+                <i class="fas fa-basketball-ball"></i>
+            </div>
+            <div class="category-name">Sports</div>
+        </a>
+
+        <a href="#" class="category-card">
+            <div class="category-icon">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div class="category-name">Food & Drink</div>
+        </a>
+    </div>
+</section>
+
+<!-- Events Section -->
+<section class="events-section">
+    <div class="events-header">
+        <h2 class="section-title">
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <span>Search Results for "@search"</span>
+            }
+            else
+            {
+                <span>Upcoming Events</span>
+            }
+        </h2>
+
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <a href="@Url.Action("Index", "Events")" class="btn-event">
+                <i class="fas fa-th-large"></i> View All Events
+            </a>
+        }
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="no-results">
+            <div class="no-results-icon">
+                <i class="fas fa-calendar-times"></i>
+            </div>
+            <h3 class="no-results-title">No Events Found</h3>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <p class="no-results-description">We couldn't find any events matching your search for "@search".</p>
+                <a href="@Url.Action("Index", "Home")" class="btn-event">
+                    <i class="fas fa-arrow-left"></i> Back to All Events
+                </a>
+            }
+            else
+            {
+                <p class="no-results-description">There are no upcoming events at the moment. Please check back later.</p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="events-grid">
+            @foreach (var evt in Model)
+            {
+                <div class="event-card">
+                    <div class="event-image-container">
+                        @if (!string.IsNullOrEmpty(evt.ImageUrl))
+                        {
+                            <img src="@evt.ImageUrl" alt="@evt.Title" class="event-image" />
+                        }
+                        else
+                        {
+                            <img src="/images/event-placeholder.jpg" alt="Event" class="event-image" />
+                        }
+
+                        <div class="event-date-badge">
+                            <div class="event-date-day">@evt.Date.Day</div>
+                            <div class="event-date-month">@evt.Date.ToString("MMM")</div>
+                        </div>
+
+                        <div class="event-category-badge">
+                            @evt.CategoryName
+                        </div>
+
+                        <button class="event-favorite-btn" onclick="toggleFavorite(@evt.Id, event)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+
+                    <div class="event-content">
+                        <h3 class="event-title">@evt.Title</h3>
+
+                        <div class="event-details">
+                            <div class="event-detail">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>@evt.VenueName</span>
+                            </div>
+                            <div class="event-detail">
+                                <i class="fas fa-clock"></i>
+                                <span>@evt.Date.ToString("h:mm tt")</span>
+                            </div>
+                        </div>
+
+                        <div class="event-description">
+                            @(evt.Description.Length > 100 ? evt.Description.Substring(0, 100) + "..." : evt.Description)
+                        </div>
+
+                        <div class="event-footer">
+                            <div class="event-price">@evt.Price.ToString("C")</div>
+                            <a href="/events/@evt.Id" class="event-button">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                @if (currentPage > 1)
+                {
+                    <a href="@Url.Action("Index", "Home", new { search = search, page = currentPage - 1 })" class="pagination-item">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="pagination-item disabled">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                }
+
+                @{
+                    var startPage = Math.Max(1, currentPage - 2);
+                    var endPage = Math.Min(totalPages, startPage + 4);
+
+                    if (startPage > 1)
+                    {
+                        <a href="@Url.Action("Index", "Home", new { search = search, page = 1 })" class="pagination-item">1</a>
+
+                        if (startPage > 2)
+                        {
+                            <span class="pagination-ellipsis">...</span>
+                        }
+                    }
+
+                    for (int i = startPage; i <= endPage; i++)
+                    {
+                        if (i == currentPage)
+                        {
+                            <span class="pagination-item active">@i</span>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", "Home", new { search = search, page = i })" class="pagination-item">@i</a>
+                        }
+                    }
+
+                    if (endPage < totalPages)
+                    {
+                        if (endPage < totalPages - 1)
+                        {
+                            <span class="pagination-ellipsis">...</span>
+                        }
+
+                        <a href="@Url.Action("Index", "Home", new { search = search, page = totalPages })" class="pagination-item">@totalPages</a>
+                    }
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <a href="@Url.Action("Index", "Home", new { search = search, page = currentPage + 1 })" class="pagination-item">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="pagination-item disabled">
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                }
+            </div>
+        }
+    }
+</section>
+
+<!-- Call to Action Section -->
+@if (!User.Identity?.IsAuthenticated ?? true)
+{
+    <section class="cta-section">
+        <h2 class="cta-title">Ready to Experience Amazing Events?</h2>
+        <p class="cta-description">
+            Sign up now to browse all events, book tickets, and get personalized recommendations.
+            Join thousands of event-goers who have found their perfect events through our platform.
+        </p>
+        <div class="cta-buttons">
+            <a href="@Url.Action("SignUp", "Account")" class="cta-button primary">
+                <i class="fas fa-user-plus"></i> Sign Up Now
+            </a>
+            <a href="@Url.Action("Login", "Account")" class="cta-button secondary">
+                <i class="fas fa-sign-in-alt"></i> Log In
+            </a>
+        </div>
+    </section>
+}
+
+<!-- Features Section -->
+<section class="features-section">
+    <h2 class="section-title">Why Choose Our Platform</h2>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <h3 class="feature-title">Easy Booking</h3>
+            <p class="feature-description">
+                Book tickets in just a few clicks and get instant confirmation.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 class="feature-title">Discover Events</h3>
+            <p class="feature-description">
+                Find events that match your interests and preferences.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="feature-title">Secure Payments</h3>
+            <p class="feature-description">
+                Your payment information is always protected with our secure system.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <h3 class="feature-title">Event Reminders</h3>
+            <p class="feature-description">
+                Get notifications about upcoming events you've booked.
+            </p>
+        </div>
+    </div>
+</section>
+
+<script>
+    function toggleFavorite(eventId, e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const button = e.currentTarget;
+        const icon = button.querySelector('i');
+
+        if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            icon.style.color = '#ef4444';
+        } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            icon.style.color = '';
+        }
+
+        // This would be implemented to handle favorites with AJAX
+        console.log('Toggle favorite for event:', eventId);
+    }
+</script>

@@ -28,12 +28,11 @@ namespace EventBookingSystemV1.Data
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<EventCategory> EventCategories { get; set; }
-        public DbSet<EventTag> EventTags { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<Review> Reviews { get; set; }
-        public DbSet<Tag> Tags { get; set; }
+        
         public DbSet<Venue> Venues { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

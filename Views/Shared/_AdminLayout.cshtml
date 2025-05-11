@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Event Booking System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="@Url.Action("Index", "Admin")" class="sidebar-brand">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Event System</span>
+                </a>
+                <button class="sidebar-close" id="sidebarClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-content">
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Admin")">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Action"].ToString() == "Users" ? "active" : "")"
+                           href="@Url.Action("Users", "Admin")">
+                            <i class="fas fa-users"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Action"].ToString() == "Events" ? "active" : "")"
+                           href="@Url.Action("Events", "Admin")">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Events</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Action"].ToString() == "Bookings" ? "active" : "")"
+                           href="@Url.Action("Bookings", "Admin")">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Bookings</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Action"].ToString() == "venues" ? "active" : "")"
+                           href="@Url.Action("Index", "Venue")">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Venues</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Action"].ToString() == "categories" ? "active" : "")"
+                           href="@Url.Action("Index", "Category")">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Categories</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Action"].ToString() == "Audit" ? "active" : "")"
+                           href="@Url.Action("Audit", "Admin")">
+                            <i class="fas fa-history"></i>
+                            <span>Audit Log</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Top Navigation -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+
+                <div class="header-right">
+                    <div class="dropdown">
+                        <button class="dropdown-toggle" onclick="toggleUserDropdown()">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span>@(User.Identity?.Name ?? "Admin")</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="userDropdown">
+                            <a href="@Url.Action("Index", "Home")" class="dropdown-item">
+                                <i class="fas fa-home"></i> Home Page
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="@Url.Action("Logout", "Account")" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="admin-content">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert-admin alert-admin-danger">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        @TempData["Error"]
+                    </div>
+                }
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert-admin alert-admin-success">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle sidebar on mobile
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.querySelector('.admin-layout').classList.toggle('sidebar-open');
+        });
+
+        document.getElementById('sidebarClose').addEventListener('click', function() {
+            document.querySelector('.admin-layout').classList.remove('sidebar-open');
+        });
+
+        // Toggle user dropdown
+        function toggleUserDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('.dropdown-toggle') && !event.target.closest('.dropdown-toggle')) {
+                var dropdowns = document.getElementsByClassName('dropdown-menu');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

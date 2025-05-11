@@ -1,4 +1,4 @@
-namespace EventBookingSystemV1.Models
+namespace EventBookingSystemV1.ViewModels
 {
     public class ErrorViewModel
     {
