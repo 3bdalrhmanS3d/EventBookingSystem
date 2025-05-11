@@ -1,0 +1,209 @@
+﻿@model List<EventBookingSystemV1.ViewModels.EventViewModel>
+@{
+    ViewData["Title"] = "Events";
+}
+
+<link rel="stylesheet" href="~/css/event.css" asp-append-version="true" />
+
+<div class="event-container">
+    <!-- Hero Section with Search -->
+    <div class="events-hero">
+        <div class="events-hero-content">
+            <h1 class="events-hero-title">Discover Amazing Events</h1>
+            <p class="events-hero-subtitle">Find the perfect event for your interests</p>
+
+            <form method="get" asp-action="Index" class="events-search-form">
+                <div class="search-input-group">
+                    <input type="text" name="search" class="search-input"
+                           placeholder="Search by event name, category or venue..."
+                           value="@ViewData["Search"]" />
+                    <button type="submit" class="search-button">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="events-content">
+        <!-- Header with Actions -->
+        <div class="events-content-header">
+            <div class="events-results">
+                @if (!string.IsNullOrEmpty((string)ViewData["Search"]))
+                {
+                    <h2>Search Results for "@ViewData["Search"]"</h2>
+                }
+                else
+                {
+                    <h2>All Events</h2>
+                }
+                <p>Showing @Model.Count() of @(((int)ViewData["CurrentPage"] - 1) * 10 + Model.Count()) events</p>
+            </div>
+
+            <div class="events-actions">
+                <a asp-action="Create" class="btn-event">
+                    <i class="fas fa-plus"></i> Create Event
+                </a>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert-event alert-event-danger">
+                <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            </div>
+        }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert-event alert-event-success">
+                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <!-- Events Grid -->
+        @if (Model.Any())
+        {
+            <div class="events-grid">
+                @foreach (var ev in Model)
+                {
+                    <div class="event-card">
+                        <div class="event-card-image">
+                            @if (!string.IsNullOrEmpty(ev.ImageUrl))
+                            {
+                                <img src="@ev.ImageUrl" alt="@ev.Title" />
+                            }
+                            else
+                            {
+                                <img src="/images/event-placeholder.jpg" alt="@ev.Title" />
+                            }
+                            <div class="event-card-date">
+                                <div class="event-date-day">@ev.Date.Day</div>
+                                <div class="event-date-month">@ev.Date.ToString("MMM")</div>
+                            </div>
+                            <div class="event-card-category">@ev.CategoryName</div>
+                        </div>
+                        <div class="event-card-content">
+                            <h3 class="event-card-title">@ev.Title</h3>
+                            <div class="event-card-details">
+                                <div class="event-detail">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>@ev.VenueName</span>
+                                </div>
+                                <div class="event-detail">
+                                    <i class="fas fa-clock"></i>
+                                    <span>@ev.Date.ToString("h:mm tt")</span>
+                                </div>
+                            </div>
+                            <div class="event-card-description">
+                                @(ev.Description.Length > 100 ? ev.Description.Substring(0, 100) + "..." : ev.Description)
+                            </div>
+                            <div class="event-card-footer">
+                                <div class="event-card-price">@ev.Price.ToString("C")</div>
+                                <div class="event-card-actions">
+                                    <a asp-action="Details" asp-route-id="@ev.Id" class="btn-event-sm">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@ev.Id" class="btn-outline-event-sm">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="events-empty">
+                <div class="empty-icon">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <h3>No Events Found</h3>
+                <p>We couldn't find any events matching your criteria.</p>
+                @if (!string.IsNullOrEmpty((string)ViewData["Search"]))
+                {
+                    <a asp-action="Index" class="btn-event">View All Events</a>
+                }
+                else
+                {
+                    <a asp-action="Create" class="btn-event">Create an Event</a>
+                }
+            </div>
+        }
+
+        <!-- Pagination -->
+        @if ((int)ViewData["TotalPages"] > 1)
+        {
+            <div class="events-pagination">
+                <ul class="pagination-list">
+                    @if ((int)ViewData["CurrentPage"] > 1)
+                    {
+                        <li>
+                            <a asp-action="Index"
+                               asp-route-page="@((int)ViewData["CurrentPage"] - 1)"
+                               asp-route-search="@ViewData["Search"]"
+                               class="pagination-link">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+
+                    @{
+                        int startPage = Math.Max(1, (int)ViewData["CurrentPage"] - 2);
+                        int endPage = Math.Min((int)ViewData["TotalPages"], startPage + 4);
+
+                        if (startPage > 1)
+                        {
+                            <li>
+                                <a asp-action="Index" asp-route-page="1" asp-route-search="@ViewData["Search"]" class="pagination-link">1</a>
+                            </li>
+                            if (startPage > 2)
+                            {
+                                <li class="pagination-ellipsis">...</li>
+                            }
+                        }
+
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li>
+                                <a asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-search="@ViewData["Search"]"
+                                   class="pagination-link @(i == (int)ViewData["CurrentPage"] ? "active" : "")">@i</a>
+                            </li>
+                        }
+
+                        if (endPage < (int)ViewData["TotalPages"])
+                        {
+                            if (endPage < (int)ViewData["TotalPages"] - 1)
+                            {
+                                <li class="pagination-ellipsis">...</li>
+                            }
+                            <li>
+                                <a asp-action="Index"
+                                   asp-route-page="@ViewData["TotalPages"]"
+                                   asp-route-search="@ViewData["Search"]"
+                                   class="pagination-link">@ViewData["TotalPages"]</a>
+                            </li>
+                        }
+                    }
+
+                    @if ((int)ViewData["CurrentPage"] < (int)ViewData["TotalPages"])
+                    {
+                        <li>
+                            <a asp-action="Index"
+                               asp-route-page="@((int)ViewData["CurrentPage"] + 1)"
+                               asp-route-search="@ViewData["Search"]"
+                               class="pagination-link">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</div>

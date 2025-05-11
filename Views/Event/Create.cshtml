@@ -1,0 +1,155 @@
+﻿@model EventBookingSystemV1.DTOs.EventDto
+
+@{
+    ViewData["Title"] = "Create Event";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/event.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}
+
+<div class="event-container">
+    <div class="event-header">
+        <h1>Create New Event</h1>
+        <a asp-action="Index" class="btn-outline-event">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-event alert-event-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        @Html.ValidationSummary(true, "", new { @class = "alert-event alert-event-danger" })
+
+        <div class="form-row">
+            <div class="form-col form-col-md-6">
+                <div class="form-group">
+                    <label asp-for="Title">Event Title</label>
+                    <input asp-for="Title" class="form-control" placeholder="Enter event title" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-col form-col-md-6">
+                <div class="form-group">
+                    <label asp-for="Price">Ticket Price</label>
+                    <div class="input-group">
+                        <input asp-for="Price" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                        <span class="input-group-text">$</span>
+                    </div>
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description">Event Description</label>
+            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Enter detailed event description"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-col form-col-md-6">
+                <div class="form-group">
+                    <label asp-for="EventCategoryId">Event Category</label>
+                    <select asp-for="EventCategoryId" asp-items="ViewBag.Categories" class="form-control">
+                        <option value="">-- Select Category --</option>
+                    </select>
+                    <span asp-validation-for="EventCategoryId" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-col form-col-md-6">
+                <div class="form-group">
+                    <label asp-for="VenueId">Event Venue</label>
+                    <select asp-for="VenueId" asp-items="ViewBag.Venues" class="form-control">
+                        <option value="">-- Select Venue --</option>
+                    </select>
+                    <span asp-validation-for="VenueId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-col form-col-md-6">
+                <div class="form-group">
+                    <label asp-for="Date">Event Date & Time</label>
+                    <input asp-for="Date" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="Date" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-col form-col-md-6">
+                <div class="form-group">
+                    <label asp-for="Image">Event Image</label>
+                    <div class="file-upload-container" onclick="document.getElementById('imageUpload').click();">
+                        <div class="file-upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <p class="file-upload-text">
+                            <span>Click to select file</span> or drag and drop
+                        </p>
+                        <input asp-for="Image" type="file" id="imageUpload" class="form-control-file" style="display:none;" onchange="updateFileName(this)" />
+                        <p id="selectedFileName" class="mt-2" style="display:none;"></p>
+                    </div>
+                    <span asp-validation-for="Image" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group text-start mt-4">
+            <button type="submit" class="btn-event">
+                <i class="fas fa-plus me-2"></i> Create Event
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function updateFileName(input) {
+            const fileNameElement = document.getElementById('selectedFileName');
+            if (input.files && input.files[0]) {
+                fileNameElement.textContent = 'Selected: ' + input.files[0].name;
+                fileNameElement.style.display = 'block';
+            } else {
+                fileNameElement.style.display = 'none';
+            }
+        }
+
+        const dropZone = document.querySelector('.file-upload-container');
+        const fileInput = document.getElementById('imageUpload');
+
+        ['dragenter','dragover','dragleave','drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter','dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('highlight'), false);
+        });
+        ['dragleave','drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('highlight'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            updateFileName(fileInput);
+        }
+    </script>
+}

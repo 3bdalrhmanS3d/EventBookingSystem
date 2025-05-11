@@ -10,12 +10,15 @@
         public DateTimeOffset Date { get; set; }
         public decimal Price { get; set; }
         public string ImageUrl { get; set; } = default!;
-        public List<string> Tags { get; set; } = new();
-
         // Related bookings
         public List<BookingInfoViewModel> Bookings { get; set; } = new();
 
         // Related reviews
         public List<ReviewInfoViewModel> Reviews { get; set; } = new();
+
+        public bool IsFavorited { get; set; }
+
+        public double AverageRating { get; set; }
+
     }
 }

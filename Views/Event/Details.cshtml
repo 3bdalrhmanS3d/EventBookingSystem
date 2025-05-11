@@ -1,0 +1,314 @@
+﻿@model EventBookingSystemV1.ViewModels.EventDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    var isFav = Model.IsFavorited;
+}
+
+<link rel="stylesheet" href="~/css/event-details.css" />
+
+<div class="event-details-container fade-in">
+    <!-- Event Header -->
+    <div class="event-details-header">
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" alt="@Model.Title" class="event-details-image" />
+        }
+        else
+        {
+            <img src="/images/event-placeholder.jpg" alt="Placeholder" class="event-details-image" />
+        }
+
+        <div class="event-details-overlay">
+            <span class="event-details-category">@Model.Category</span>
+            <h1 class="event-details-title">@Model.Title</h1>
+            <div class="event-details-meta">
+                <div class="event-details-meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>@Model.Venue</span>
+                </div>
+                <div class="event-details-meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>@Model.Date.ToString("MMMM d, yyyy")</span>
+                </div>
+                <div class="event-details-meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>@Model.Date.ToString("h:mm tt")</span>
+                </div>
+                <div class="event-details-meta-item">
+                    <i class="fas fa-star"></i>
+                    <span>
+                        @(Model.AverageRating)
+                        (@Model.Reviews.Count reviews)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="event-details-actions">
+            
+            <form id="favForm-@Model.Id"
+                  asp-controller="Profile"
+                  asp-action="ToggleFavorite"
+                  asp-route-eventId="@Model.Id"
+                  method="post"
+                  style="display:inline">
+                @Html.AntiForgeryToken()
+                <button type="button"
+                        class="event-action-button favorite"
+                        title="Toggle favorite"
+                        onclick="toggleFavorite(@Model.Id)">
+                    <i id="heartIcon-@Model.Id"
+                       class="@(isFav ? "fas" : "far") fa-heart"></i>
+                </button>
+            </form>
+            <button class="event-action-button" onclick="shareEvent()" title="Share event">
+                <i class="fas fa-share-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Event Content -->
+    <div class="event-details-content">
+        <div class="event-details-main">
+            <div class="event-details-section">
+                <h2 class="event-details-section-title">
+                    <i class="fas fa-info-circle"></i> About This Event
+                </h2>
+                <div class="event-details-description">
+                    @Model.Description
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="event-details-section">
+                <h2 class="event-details-section-title">
+                    <i class="fas fa-star"></i> Reviews
+                </h2>
+
+                @if (Model.Reviews.Any())
+                {
+                    <div class="event-reviews-summary">
+                        <div class="event-reviews-average">
+                            @Model.AverageRating 
+                        </div>
+                        <div class="event-reviews-stars">
+                            <div class="event-reviews-stars-display">
+                                @{
+                                    var avgRating = Model.Reviews.Average(r => r.Rating);
+                                    for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= Math.Floor(avgRating))
+                                        {
+                                            <i class="fas fa-star"></i>
+                                        }
+                                        else if (i - avgRating < 1 && i - avgRating > 0)
+                                        {
+                                            <i class="fas fa-star-half-alt"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-star"></i>
+                                        }
+                                    }
+                                }
+                            </div>
+                            <span class="event-reviews-count">Based on @Model.Reviews.Count reviews</span>
+                        </div>
+                    </div>
+
+                    <div class="event-reviews-list">
+                        @foreach (var review in Model.Reviews)
+                        {
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <div class="review-author">@review.Reviewer</div>
+                                    <div class="review-rating">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= review.Rating)
+                                            {
+                                                <i class="fas fa-star"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="far fa-star"></i>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                                <div class="review-content">@review.Comment</div>
+                                <div class="review-date">@review.CreatedAt.ToString("MMMM d, yyyy")</div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert-admin alert-admin-info">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        No reviews yet. Be the first to review this event!
+                    </div>
+                }
+
+                <!-- Review Form -->
+                <div class="review-form">
+                    <h3 class="review-form-title">Write a Review</h3>
+                    <form asp-controller="Profile" asp-action="CreateReview" method="post">
+                        <input type="hidden" name="Id" value="@Model.Id" />
+
+                        <div class="form-group">
+                            <label for="Rating">Rating</label>
+                            <div class="star-rating-input">
+                                @for (int i = 5; i >= 1; i--)
+                                {
+                                    <input type="radio" id="star@i" name="Rating" value="@i" required />
+                                    <label for="star@i" title="@i stars">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Comment">Comment</label>
+                            <textarea id="Comment" name="Comment" class="form-control" rows="3"
+                                      placeholder="Share your experience..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-admin btn-primary-admin">
+                            <i class="fas fa-paper-plane mr-2"></i> Submit Review
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Sidebar -->
+        <div class="event-details-sidebar">
+            <div class="event-booking-card">
+                <div class="event-booking-header">
+                    <div class="event-booking-price-label">Price</div>
+                    <div class="event-booking-price">@Model.Price.ToString("C")</div>
+                </div>
+                <div class="event-booking-content">
+                    <div class="event-booking-info">
+                        <div class="event-booking-info-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>@Model.Date.ToString("dddd, MMMM d, yyyy")</span>
+                        </div>
+                        <div class="event-booking-info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>@Model.Date.ToString("h:mm tt")</span>
+                        </div>
+                        <div class="event-booking-info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>@Model.Venue</span>
+                        </div>
+                    </div>
+
+                    <a href="@Url.Action("Create", "Booking", new { eventId = Model.Id })" class="btn-admin btn-primary-admin event-booking-button">
+                        <i class="fas fa-ticket-alt mr-2"></i> Book Now
+                    </a>
+                </div>
+            </div>
+
+            <div class="event-organizer-card">
+                <div class="event-organizer-header">
+                    <h3 class="event-organizer-title">Event Organizer</h3>
+                </div>
+                <div class="event-organizer-content">
+                    <div class="event-organizer-info">
+                        <div class="event-organizer-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="event-organizer-name">Event Organizer</div>
+                            <div class="event-organizer-contact">
+                                <i class="fas fa-envelope mr-1"></i> contact@example.com
+                            </div>
+                        </div>
+                    </div>
+                    <div class="event-organizer-description">
+                        Professional event organizer with years of experience in creating memorable experiences.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toggle favorite status
+        // function toggleFavorite(eventId) {
+        //     const favoriteBtn = document.querySelector('.event-action-button.favorite');
+        //     const icon = favoriteBtn.querySelector('i');
+
+        //     if (icon.classList.contains('far')) {
+        //         icon.classList.remove('far');
+        //         icon.classList.add('fas');
+        //         favoriteBtn.classList.add('active');
+        //     } else {
+        //         icon.classList.remove('fas');
+        //         icon.classList.add('far');
+        //         favoriteBtn.classList.remove('active');
+        //     }
+
+        //     TODO: AJAX call to ProfileController.ToggleFavorite
+        //     console.log('Toggle favorite for event:', eventId);
+        // }
+
+        async function toggleFavorite(eventId) {
+          const form = document.getElementById(`favForm-${eventId}`);
+          const icon = document.getElementById(`heartIcon-${eventId}`);
+          // grab the antiforgery token hidden input
+          const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+          const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+              'RequestVerificationToken': token,
+              'Content-Type': 'application/json'
+            }
+            // no body needed, route param supplies the eventId
+          });
+
+          if (response.ok) {
+            // flip the icon class
+            if (icon.classList.contains('fas')) {
+              icon.classList.replace('fas', 'far');
+            } else {
+              icon.classList.replace('far', 'fas');
+            }
+          } else {
+            alert('Something went wrong toggling favorite.');
+          }
+        }
+        // Share event functionality
+        function shareEvent() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '@Model.Title',
+                    text: 'Check out this event: @Model.Title',
+                    url: window.location.href
+                })
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing:', error));
+            } else {
+                // Fallback for browsers that don't support the Web Share API
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = window.location.href;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+
+                alert('Link copied to clipboard!');
+            }
+        }
+    </script>
+    <script>
+        
+    </script>
+
+}
