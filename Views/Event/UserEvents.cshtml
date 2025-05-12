@@ -1,0 +1,228 @@
+﻿@model List<EventBookingSystemV1.ViewModels.EventViewModel>
+@{
+    ViewData["Title"] = "Explore Events";
+    var currentPage = (int)ViewData["CurrentPage"];
+    var totalPages = (int)ViewData["TotalPages"];
+    var search = (string)ViewData["Search"];
+}
+
+<link rel="stylesheet" href="~/css/event.css" asp-append-version="true" />
+
+<div class="event-container">
+    <!-- Hero Section with Search -->
+    <div class="events-hero">
+        <div class="events-hero-content">
+            <h1 class="events-hero-title">Explore Events</h1>
+            <p class="events-hero-subtitle">Discover and book amazing events in your area</p>
+
+            <form method="get" asp-action="Events" class="events-search-form">
+                <div class="search-input-group">
+                    <input type="text" name="search" class="search-input"
+                           placeholder="Search by event name, category or venue..."
+                           value="@ViewData["Search"]" />
+                    <button type="submit" class="search-button">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="events-content">
+        <!-- Header with Filters -->
+        <div class="events-content-header">
+            <div class="events-results">
+                @if (!string.IsNullOrEmpty((string)ViewData["Search"]))
+                {
+                    <h2>Search Results for "@ViewData["Search"]"</h2>
+                }
+                else
+                {
+                    <h2>Upcoming Events</h2>
+                }
+                <p>Showing @Model.Count() events</p>
+            </div>
+
+            <div class="events-filters">
+                <div class="dropdown">
+                    <button class="btn-outline-event btn-outline-event-sm dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                        <li><a class="dropdown-item" href="#">All Events</a></li>
+                        <li><a class="dropdown-item" href="#">Today</a></li>
+                        <li><a class="dropdown-item" href="#">This Weekend</a></li>
+                        <li><a class="dropdown-item" href="#">This Month</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">Free Events</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown ms-2">
+                    <button class="btn-outline-event btn-outline-event-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-sort-down"></i> Sort
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                        <li><a class="dropdown-item" href="#">Date: Soonest</a></li>
+                        <li><a class="dropdown-item" href="#">Date: Latest</a></li>
+                        <li><a class="dropdown-item" href="#">Price: Low to High</a></li>
+                        <li><a class="dropdown-item" href="#">Price: High to Low</a></li>
+                        <li><a class="dropdown-item" href="#">Name: A to Z</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Grid -->
+        @if (Model.Any())
+        {
+            <div class="events-grid">
+                @foreach (var evt in Model)
+                {
+                    <a href="@Url.Action("Details", "Events", new { id = evt.Id })" class="event-card">
+                        <div class="event-image-container">
+                            @if (!string.IsNullOrEmpty(evt.ImageUrl))
+                            {
+                                <img src="@evt.ImageUrl" alt="@evt.Title" class="event-image" />
+                            }
+                            else
+                            {
+                                <img src="/images/event-placeholder.jpg" alt="Event" class="event-image" />
+                            }
+                            <div class="event-image-overlay"></div>
+
+                            <!-- Heart Button -->
+                            <button class="event-favorite" onclick="event.preventDefault(); toggleFavorite(@evt.Id)">
+                                <i class="bi bi-heart"></i>
+                            </button>
+
+                            <!-- Tags -->
+                            <div class="event-tags">
+                                <span class="event-tag">@evt.CategoryName</span>
+                                <span class="event-tag">@(Math.Round(new Random().NextDouble() * 10, 1)) km</span>
+                            </div>
+                        </div>
+
+                        <div class="event-content">
+                            <div class="event-header">
+                                <h3 class="event-title">@evt.Title</h3>
+                                <div class="event-rating">
+                                    <span class="event-rating-star">★</span>
+                                    <span>@(Math.Round(3.5 + new Random().NextDouble() * 1.5, 1))</span>
+                                    <span class="event-rating-count">(@(new Random().Next(10, 100)))</span>
+                                </div>
+                            </div>
+
+                            <p class="event-venue">@evt.VenueName</p>
+
+                            <div class="event-footer">
+                                <span class="event-date">
+                                    @{
+                                        var days = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+                                        var day = days[((int)evt.Date.DayOfWeek)];
+                                    }
+                                    @day. @evt.Date.Day | @evt.Date.ToString("h")h - @(evt.Date.Hour + 2)h
+                                </span>
+                                <span class="event-price">@evt.Price.ToString("0.##")€</span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="events-empty">
+                <div class="empty-icon">
+                    <i class="bi bi-calendar-x"></i>
+                </div>
+                <h3>No Events Found</h3>
+                @if (!string.IsNullOrEmpty((string)ViewData["Search"]))
+                {
+                    <p>We couldn't find any events matching your search for "@ViewData["Search"]".</p>
+                    <a asp-action="Events" class="btn-event">View All Events</a>
+                }
+                else
+                {
+                    <p>There are no upcoming events at the moment. Please check back later.</p>
+                }
+            </div>
+        }
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                @if (currentPage > 1)
+                {
+                    <a href="@Url.Action("Events", new { search = search, page = currentPage - 1 })" class="pagination-item">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="pagination-item disabled">
+                        <i class="bi bi-chevron-left"></i>
+                    </span>
+                }
+
+                @{
+                    int startPage = Math.Max(1, currentPage - 2);
+                    int endPage = Math.Min(totalPages, startPage + 4);
+
+                    if (startPage > 1)
+                    {
+                        <a href="@Url.Action("Events", new { search = search, page = 1 })" class="pagination-item">1</a>
+                        if (startPage > 2)
+                        {
+                            <span class="pagination-item disabled">...</span>
+                        }
+                    }
+
+                    for (int i = startPage; i <= endPage; i++)
+                    {
+                        if (i == currentPage)
+                        {
+                            <span class="pagination-item active">@i</span>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Events", new { search = search, page = i })" class="pagination-item">@i</a>
+                        }
+                    }
+
+                    if (endPage < totalPages)
+                    {
+                        if (endPage < totalPages - 1)
+                        {
+                            <span class="pagination-item disabled">...</span>
+                        }
+                        <a href="@Url.Action("Events", new { search = search, page = totalPages })" class="pagination-item">@totalPages</a>
+                    }
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <a href="@Url.Action("Events", new { search = search, page = currentPage + 1 })" class="pagination-item">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="pagination-item disabled">
+                        <i class="bi bi-chevron-right"></i>
+                    </span>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+
+<script>
+    function toggleFavorite(eventId) {
+        // This would be implemented to handle favorites
+        console.log('Toggle favorite for event:', eventId);
+        event.stopPropagation();
+    }
+</script>

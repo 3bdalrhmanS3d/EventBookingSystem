@@ -317,6 +317,49 @@ namespace EventBookingSystemV1.Controllers
             return RedirectToAction("SignIn");
         }
 
+        // GET: /account/resend-verification
+        [HttpGet("resend-verification")]
+        public async Task<IActionResult> ResendVerificationEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest();
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return NotFound();
+
+            // generate a new 7-digit code
+            var rnd = new Random();
+            var code = rnd.Next(1000000, 10000000).ToString();
+
+            var activation = new AccountActivation
+            {
+                UserId = user.Id,
+                Code = code,
+                CreatedAt = DateTimeOffset.UtcNow,
+                ExpiryDate = DateTimeOffset.UtcNow.AddHours(6),
+                IsUsed = false
+            };
+            _context.AccountActivation.Add(activation);
+            await _context.SaveChangesAsync();
+
+            // enqueue a *resend* email
+            _emailQueue.QueueVerificationEmail(user.Email, user.FullName, code, isResend: true);
+
+            // reset the pending_email cookie so the VerifyEmail page still knows which user
+            Response.Cookies.Append("pending_email", user.Email, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = activation.ExpiryDate
+            });
+
+            // back to the same verify page
+            TempData["SuccessMessage"] = "A new verification code has been sent to your inbox.";
+            return RedirectToAction("VerifyEmail", new { email });
+        }
+
         // POST: /account/signout
         [HttpPost("signout")]
         [ValidateAntiForgeryToken]

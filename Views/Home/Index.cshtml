@@ -90,7 +90,7 @@
 
         @if (User.Identity?.IsAuthenticated ?? false)
         {
-            <a href="@Url.Action("Index", "Events")" class="btn-event">
+            <a href="@Url.Action("Events",  "Event" )" class="btn-event">
                 <i class="fas fa-th-large"></i> View All Events
             </a>
         }
@@ -257,7 +257,7 @@
             <a href="@Url.Action("SignUp", "Account")" class="cta-button primary">
                 <i class="fas fa-user-plus"></i> Sign Up Now
             </a>
-            <a href="@Url.Action("Login", "Account")" class="cta-button secondary">
+            <a href="@Url.Action("Signin", "Account")" class="cta-button secondary">
                 <i class="fas fa-sign-in-alt"></i> Log In
             </a>
         </div>

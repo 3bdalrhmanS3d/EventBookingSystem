@@ -21,7 +21,8 @@ namespace EventBookingSystemV1.Controllers
             
         }
 
-        [HttpGet]
+        // Admin Events - /events
+        [HttpGet("")]
         public async Task<IActionResult> Index(string search, int page = 1)
         {
             var query = _context.Events.AsNoTracking()
@@ -53,7 +54,46 @@ namespace EventBookingSystemV1.Controllers
             ViewData["TotalPages"] = (int)Math.Ceiling(total / (double)PageSize);
             ViewData["Search"] = search;
 
-            return View(events);
+            return View("AdminEvents", events); // Return a different view for admin
+
+        }
+
+        // Public Events - /events/all
+        [HttpGet("all")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Events(string search, int page = 1)
+        {
+            var query = _context.Events.AsNoTracking()
+                .Include(e => e.Category)
+                .Include(e => e.Venue)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(e => e.Title.Contains(search) || e.Category.Name.Contains(search) || e.Venue.Name.Contains(search));
+
+            var total = await query.CountAsync();
+            var events = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .Select(e => new EventViewModel
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    CategoryName = e.Category.Name,
+                    Description = e.Description,
+                    VenueName = e.Venue.Name,
+                    Date = e.Date,
+                    Price = e.Price,
+                    ImageUrl = e.ImageUrl
+                })
+                .ToListAsync();
+
+            ViewData["CurrentPage"] = page;
+            ViewData["TotalPages"] = (int)Math.Ceiling(total / (double)PageSize);
+            ViewData["Search"] = search;
+
+            return View("UserEvents", events); // Return a different view for the public
+
         }
 
         // GET: /events/create

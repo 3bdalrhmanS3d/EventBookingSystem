@@ -47,9 +47,17 @@
             </button>
         </form>
 
-        <div class="auth-links">
-            <div class="timer">Resend code in <span id="countdown">60</span> seconds</div>
-            <a href="#" class="resend-link" id="resendLink" style="display: none;">Resend verification code</a>
+        <div class="auth-links mt-3">
+            <div class="timer">
+                Resend code in <span id="countdown">60</span> seconds
+            </div>
+            <a id="resendLink"
+               asp-action="ResendVerificationEmail"
+               asp-route-email="@Model.EmailAddress"
+               class="resend-link"
+               style="display:none;">
+                Resend verification code
+            </a>
         </div>
     </div>
 
@@ -60,7 +68,7 @@
             const verifyBtn = document.getElementById('verifyBtn');
             const countdownEl = document.getElementById('countdown');
             const resendLink = document.getElementById('resendLink');
-            let countdown = 60;
+            let countdown = 120;
 
             // Start countdown
             const timer = setInterval(() => {

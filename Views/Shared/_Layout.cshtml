@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,14 +9,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/navbar-enhanced.css" asp-append-version="true" />
     @RenderSection("Styles", required: false)
+
+
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                    <i class="fas fa-ticket-alt me-2"></i> Event Booking System
+                    <i class="fas fa-ticket-alt"></i> Event Booking System
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                         aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,55 +29,93 @@
                 <div class="collapse navbar-collapse" id="mainNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Home" && ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")"
+                               asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home"></i> Home
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Home" && ViewContext.RouteData.Values["Action"].ToString() == "Privacy" ? "active" : "")"
+                               asp-controller="Home" asp-action="Privacy">
+                                <i class="fas fa-shield-alt"></i> Privacy
+                            </a>
                         </li>
 
                         @* Only show Events & search when signed in *@
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Events" asp-action="Index">Events</a>
-                            </li>
-                            <li class="nav-item">
-                                <form class="d-flex" method="get" asp-controller="Events" asp-action="Index">
-                                    <input class="form-control me-2"
-                                           name="search"
-                                           placeholder="Search events…"
-                                           value="@(ViewData["Search"] ?? "")" />
-                                    <button class="btn btn-outline-success" type="submit">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </form>
-                            </li>
+                            @* Check if the user is an Admin or a regular User *@
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Event" && ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")"
+                                       asp-controller="Event" asp-action="Index">
+                                        <i class="fas fa-calendar-alt"></i> Manage Events
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Event" && ViewContext.RouteData.Values["Action"].ToString() == "Events" ? "active" : "")"
+                                       asp-controller="Event" asp-action="Events">
+                                        <i class="fas fa-calendar-check"></i> Events
+                                    </a>
+                                </li>
+                            }
+                            else if (User.IsInRole("User"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Event" && ViewContext.RouteData.Values["Action"].ToString() == "Events" ? "active" : "")"
+                                       asp-controller="Event" asp-action="Events">
+                                        <i class="fas fa-calendar-check"></i> Events
+                                    </a>
+                                </li>
+                            }
                         }
                     </ul>
 
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <form class="search-form d-flex me-2" method="get" asp-controller="Event" asp-action="Events">
+                            
+                            <input class="form-control search-input"
+                                   name="search"
+                                   placeholder="Search events…"
+                                   value="@(ViewData["Search"] ?? "")" />
+                            <button class="btn btn-outline-success ms-2" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </form>
+                    }
+
                     <!-- Add the theme toggle -->
-                    <div class="navbar-item">
-                        <partial name="_ThemeToggle" />
+                    <div class="theme-toggle">
+                        <button id="themeToggle" class="theme-toggle-button" aria-label="Toggle theme">
+                            <i class="fas fa-moon" id="darkIcon"></i>
+                            <i class="fas fa-sun" id="lightIcon" style="display: none;"></i>
+                        </button>
                     </div>
 
                     <ul class="navbar-nav">
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown user-dropdown">
                                 <a class="nav-link dropdown-toggle" href="#"
                                    id="userDropdown" role="button"
                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user me-1"></i> @User.Identity.Name
+                                    <div class="user-avatar">
+                                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
+                                    </div>
+                                    <span class="d-none d-md-inline">@User.Identity.Name</span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                     <li>
                                         <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
-                                            <i class="fas fa-user-circle me-1"></i> Profile
+                                            <i class="fas fa-user-circle"></i> Profile
                                         </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item" asp-controller="Profile" asp-action="MyBookings">
-                                            <i class="fas fa-ticket-alt me-1"></i> My Bookings
+                                            <i class="fas fa-ticket-alt"></i> My Bookings
                                         </a>
                                     </li>
                                     @if (User.IsInRole("Admin"))
@@ -82,22 +123,22 @@
                                         <li><hr class="dropdown-divider" /></li>
                                         <li>
                                             <a class="dropdown-item" asp-area="" asp-controller="Admin" asp-action="Index">
-                                                <i class="fas fa-cogs me-1"></i> Admin Panel
+                                                <i class="fas fa-cogs"></i> Admin Panel
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" asp-controller="Events" asp-action="Create">
-                                                <i class="fas fa-plus me-1"></i> Add Event
+                                            <a class="dropdown-item" asp-controller="Event" asp-action="Create">
+                                                <i class="fas fa-plus"></i> Add Event
                                             </a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item" asp-controller="Category" asp-action="CreateCategory">
-                                                <i class="fas fa-tags me-1"></i> Add Category
+                                                <i class="fas fa-tags"></i> Add Category
                                             </a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item" asp-controller="Venue" asp-action="CreateVenue">
-                                                <i class="fas fa-tags me-1"></i> Add Venues
+                                                <i class="fas fa-map-marker-alt"></i> Add Venues
                                             </a>
                                         </li>
                                     }
@@ -105,7 +146,7 @@
                                     <li>
                                         <form asp-controller="Account" asp-action="SignOut" method="post" class="d-inline">
                                             <button type="submit" class="dropdown-item">
-                                                <i class="fas fa-sign-out-alt me-1"></i> Logout
+                                                <i class="fas fa-sign-out-alt"></i> Logout
                                             </button>
                                         </form>
                                     </li>
@@ -115,14 +156,17 @@
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="SignIn">Sign In</a>
+                                <a class="nav-link" asp-controller="Account" asp-action="SignIn">
+                                    <i class="fas fa-sign-in-alt"></i> Sign In
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="SignUp">Sign Up</a>
+                                <a class="btn btn-signup" asp-controller="Account" asp-action="SignUp">
+                                    <i class="fas fa-user-plus"></i> Sign Up
+                                </a>
                             </li>
                         }
                     </ul>
-
                 </div>
             </div>
         </nav>
@@ -137,7 +181,33 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/theme.js"asp-append-version="true"></script >
+
+    <script>
+        // Theme toggle functionality
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            // Toggle icons
+            document.getElementById('darkIcon').style.display = newTheme === 'light' ? 'block' : 'none';
+            document.getElementById('lightIcon').style.display = newTheme === 'dark' ? 'block' : 'none';
+        });
+
+        // Set initial theme based on localStorage or system preference
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+            document.documentElement.setAttribute('data-theme', theme);
+            document.getElementById('darkIcon').style.display = theme === 'light' ? 'block' : 'none';
+            document.getElementById('lightIcon').style.display = theme === 'dark' ? 'block' : 'none';
+        })();
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

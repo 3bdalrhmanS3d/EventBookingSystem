@@ -244,7 +244,7 @@ namespace EventBookingSystemV1.Services
         
                         <div class='email-footer'>
                             <div>&copy; {DateTime.Now.Year} EventBooking. All rights reserved.</div>
-                            <div>123 Event Street, City, Country</div>
+                            <div>123 Event Street, Cairo, Egypt</div>
                             <div class='social-links'>
                                 <a href='#'>Facebook</a>
                                 <a href='#'>Twitter</a>
@@ -446,7 +446,7 @@ namespace EventBookingSystemV1.Services
         
                         <div class='email-footer'>
                             <div>&copy; {DateTime.Now.Year} EventBooking. All rights reserved.</div>
-                            <div>123 Event Street, City, Country</div>
+                            <div>123 Event Street, Cairo, Egypt</div>
                             <div class='social-links'>
                                 <a href='#'>Facebook</a>
                                 <a href='#'>Twitter</a>
