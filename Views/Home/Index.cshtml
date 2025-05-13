@@ -4,9 +4,12 @@
     var currentPage = (int)ViewData["CurrentPage"];
     var totalPages = (int)ViewData["TotalPages"];
     var search = (string)ViewData["Search"];
+    var categoryName = (string)ViewData["Category"];
+    var venueName = (string)ViewData["Venue"];
+    var sortOrder = (string)ViewData["SortOrder"];
 }
 
-<link rel="stylesheet" href="~/css/home.css" />
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 
 <!-- Hero Section -->
 <section class="hero">
@@ -25,47 +28,93 @@
     </div>
 </section>
 
+<!-- Filter and Sort Section -->
+<section class="filter-section">
+    <div class="filter-container">
+        <form method="get" asp-controller="Home" asp-action="Index" class="filter-form">
+            <!-- Preserve search term if exists -->
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <input type="hidden" name="search" value="@search" />
+            }
+
+            <div class="filter-group">
+                <label for="categoryName">Category:</label>
+                <select name="categoryName" id="categoryName" class="filter-select" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    <option value="Concerts" selected="@(categoryName == "Concerts")">Concerts</option>
+                    <option value="Movies" selected="@(categoryName == "Movies")">Movies</option>
+                    <option value="Gaming" selected="@(categoryName == "Gaming")">Gaming</option>
+                    <option value="Art" selected="@(categoryName == "Art")">Art</option>
+                    <option value="Sports" selected="@(categoryName == "Sports")">Sports</option>
+                    <option value="Food & Drink" selected="@(categoryName == "Food & Drink")">Food & Drink</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="venueName">Venue:</label>
+                <input type="text" name="venueName" id="venueName" class="filter-input" value="@venueName" placeholder="Filter by venue" />
+            </div>
+
+            <div class="filter-group">
+                <label for="sortOrder">Sort By:</label>
+                <select name="sortOrder" id="sortOrder" class="filter-select" onchange="this.form.submit()">
+                    <option value="date_asc" selected="@(sortOrder == "date_asc")">Date (Earliest First)</option>
+                    <option value="date_desc" selected="@(sortOrder == "date_desc")">Date (Latest First)</option>
+                    <option value="title_asc" selected="@(sortOrder == "title_asc")">Title (A-Z)</option>
+                    <option value="title_desc" selected="@(sortOrder == "title_desc")">Title (Z-A)</option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="filter-button">Apply Filters</button>
+                <a href="@Url.Action("Index", "Home")" class="filter-reset">Reset</a>
+            </div>
+        </form>
+    </div>
+</section>
+
 <!-- Featured Categories Section -->
 <section class="featured-categories">
     <h2 class="section-title">Popular Categories</h2>
 
     <div class="category-grid">
-        <a href="#" class="category-card">
+        <a href="@Url.Action("Index", "Home", new { categoryName = "Concerts" })" class="category-card">
             <div class="category-icon">
                 <i class="fas fa-music"></i>
             </div>
             <div class="category-name">Concerts</div>
         </a>
 
-        <a href="#" class="category-card">
+        <a href="@Url.Action("Index", "Home", new { categoryName = "Movies" })" class="category-card">
             <div class="category-icon">
                 <i class="fas fa-film"></i>
             </div>
             <div class="category-name">Movies</div>
         </a>
 
-        <a href="#" class="category-card">
+        <a href="@Url.Action("Index", "Home", new { categoryName = "Gaming" })" class="category-card">
             <div class="category-icon">
                 <i class="fas fa-gamepad"></i>
             </div>
             <div class="category-name">Gaming</div>
         </a>
 
-        <a href="#" class="category-card">
+        <a href="@Url.Action("Index", "Home", new { categoryName = "Art" })" class="category-card">
             <div class="category-icon">
                 <i class="fas fa-palette"></i>
             </div>
             <div class="category-name">Art</div>
         </a>
 
-        <a href="#" class="category-card">
+        <a href="@Url.Action("Index", "Home", new { categoryName = "Sports" })" class="category-card">
             <div class="category-icon">
                 <i class="fas fa-basketball-ball"></i>
             </div>
             <div class="category-name">Sports</div>
         </a>
 
-        <a href="#" class="category-card">
+        <a href="@Url.Action("Index", "Home", new { categoryName = "Food & Drink" })" class="category-card">
             <div class="category-icon">
                 <i class="fas fa-utensils"></i>
             </div>
@@ -82,15 +131,60 @@
             {
                 <span>Search Results for "@search"</span>
             }
+            else if (!string.IsNullOrEmpty(categoryName))
+            {
+                <span>Events in @categoryName</span>
+            }
+            else if (!string.IsNullOrEmpty(venueName))
+            {
+                <span>Events at @venueName</span>
+            }
             else
             {
                 <span>Upcoming Events</span>
             }
         </h2>
 
+        <div class="active-filters">
+            @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(categoryName) || !string.IsNullOrEmpty(venueName))
+            {
+                <div class="filter-tags">
+                    @if (!string.IsNullOrEmpty(search))
+                    {
+                        <div class="filter-tag">
+                            <span>Search: @search</span>
+                            <a href="@Url.Action("Index", "Home", new { categoryName, venueName, sortOrder })" class="filter-tag-remove">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(categoryName))
+                    {
+                        <div class="filter-tag">
+                            <span>Category: @categoryName</span>
+                            <a href="@Url.Action("Index", "Home", new { search, venueName, sortOrder })" class="filter-tag-remove">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(venueName))
+                    {
+                        <div class="filter-tag">
+                            <span>Venue: @venueName</span>
+                            <a href="@Url.Action("Index", "Home", new { search, categoryName, sortOrder })" class="filter-tag-remove">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
         @if (User.Identity?.IsAuthenticated ?? false)
         {
-            <a href="@Url.Action("Events",  "Event" )" class="btn-event">
+            <a href="@Url.Action("Events", "Event")" class="btn-event">
                 <i class="fas fa-th-large"></i> View All Events
             </a>
         }
@@ -103,9 +197,23 @@
                 <i class="fas fa-calendar-times"></i>
             </div>
             <h3 class="no-results-title">No Events Found</h3>
-            @if (!string.IsNullOrEmpty(search))
+            @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(categoryName) || !string.IsNullOrEmpty(venueName))
             {
-                <p class="no-results-description">We couldn't find any events matching your search for "@search".</p>
+                <p class="no-results-description">
+                    We couldn't find any events matching your criteria.
+                    @if (!string.IsNullOrEmpty(search))
+                    {
+                        <span>Search: "@search"</span>
+                    }
+                    @if (!string.IsNullOrEmpty(categoryName))
+                    {
+                        <span>Category: "@categoryName"</span>
+                    }
+                    @if (!string.IsNullOrEmpty(venueName))
+                    {
+                        <span>Venue: "@venueName"</span>
+                    }
+                </p>
                 <a href="@Url.Action("Index", "Home")" class="btn-event">
                     <i class="fas fa-arrow-left"></i> Back to All Events
                 </a>
@@ -179,7 +287,7 @@
             <div class="pagination">
                 @if (currentPage > 1)
                 {
-                    <a href="@Url.Action("Index", "Home", new { search = search, page = currentPage - 1 })" class="pagination-item">
+                    <a href="@Url.Action("Index", "Home", new { search, categoryName, venueName, sortOrder, page = currentPage - 1 })" class="pagination-item">
                         <i class="fas fa-chevron-left"></i>
                     </a>
                 }
@@ -196,7 +304,7 @@
 
                     if (startPage > 1)
                     {
-                        <a href="@Url.Action("Index", "Home", new { search = search, page = 1 })" class="pagination-item">1</a>
+                        <a href="@Url.Action("Index", "Home", new { search, categoryName, venueName, sortOrder, page = 1 })" class="pagination-item">1</a>
 
                         if (startPage > 2)
                         {
@@ -212,7 +320,7 @@
                         }
                         else
                         {
-                            <a href="@Url.Action("Index", "Home", new { search = search, page = i })" class="pagination-item">@i</a>
+                            <a href="@Url.Action("Index", "Home", new { search, categoryName, venueName, sortOrder, page = i })" class="pagination-item">@i</a>
                         }
                     }
 
@@ -223,13 +331,13 @@
                             <span class="pagination-ellipsis">...</span>
                         }
 
-                        <a href="@Url.Action("Index", "Home", new { search = search, page = totalPages })" class="pagination-item">@totalPages</a>
+                        <a href="@Url.Action("Index", "Home", new { search, categoryName, venueName, sortOrder, page = totalPages })" class="pagination-item">@totalPages</a>
                     }
                 }
 
                 @if (currentPage < totalPages)
                 {
-                    <a href="@Url.Action("Index", "Home", new { search = search, page = currentPage + 1 })" class="pagination-item">
+                    <a href="@Url.Action("Index", "Home", new { search, categoryName, venueName, sortOrder, page = currentPage + 1 })" class="pagination-item">
                         <i class="fas fa-chevron-right"></i>
                     </a>
                 }
