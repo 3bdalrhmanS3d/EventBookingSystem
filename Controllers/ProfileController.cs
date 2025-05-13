@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using EventBookingSystemV1.ViewModels;
 using EventBookingSystemV1.DTOs;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 
 namespace EventBookingSystemV1.Controllers
 {
@@ -72,14 +74,17 @@ namespace EventBookingSystemV1.Controllers
 
             var userId = CurrentUserId;
             var user = await _context.Users.FindAsync(userId);
+            
             if (user == null) return NotFound();
 
             // update fields
             user.FullName = $"{dto.FirstName.Trim()} {dto.LastName.Trim()}";
-            
             await _context.SaveChangesAsync();
 
+            await RefreshUserClaims(user);
+
             TempData["SuccessMessage"] = "Profile updated successfully!";
+
             await LogAuditAsync(nameof(User), user.Id, "UpdateProfile", new { user.FullName, user.BirthDate });
 
             return RedirectToAction(nameof(Index));

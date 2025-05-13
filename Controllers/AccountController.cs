@@ -215,20 +215,19 @@ namespace EventBookingSystemV1.Controllers
                 return RedirectToAction("VerifyEmail", new { email = user.Email });
             }
 
-            // 1) بناء ClaimsPrincipal
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name,           user.FullName),
                 new Claim(ClaimTypes.Email,          user.Email),
-                new Claim(ClaimTypes.Role,           user.Role.ToString())
+                new Claim(ClaimTypes.Role,           user.Role.ToString()),
+                new Claim(ClaimTypes.DateOfBirth, user.BirthDate.ToString("yyyy-MM-dd"))
             };
 
             var identity = new ClaimsIdentity(
                 claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 
-            // 2) خصائص المصادقة
             var props = new AuthenticationProperties
             {
                 IsPersistent = dto.RememberMe,
@@ -237,13 +236,11 @@ namespace EventBookingSystemV1.Controllers
                     : (DateTimeOffset?)null
             };
 
-            // 3) تسجيل الدخول
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 principal,
                 props);
 
-            // 4) إعادة التوجيه
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
