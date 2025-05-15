@@ -16,22 +16,32 @@ namespace EventBookingSystemV1.Controllers
     [Authorize(Roles = nameof(UserRole.Admin))]
     public class EventController : BaseController
     {
-        public EventController(ApplicationDbContext context, IWebHostEnvironment env): base(context, env)
+        private readonly ILogger<EventController> _logger;
+        public EventController(ApplicationDbContext context, IWebHostEnvironment env, ILogger<EventController> logger) : base(context, env)
         {
-            
+            _logger = logger;
         }
 
         // Admin Events - /events
         [HttpGet("")]
         public async Task<IActionResult> Index(string search, int page = 1)
         {
+            _logger.LogInformation("Admin Index called (search={Search}, page={Page})", search, page);
+
             var query = _context.Events.AsNoTracking()
                 .Include(e => e.Category)
                 .Include(e => e.Venue)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(e => e.Title.Contains(search) || e.Category.Name.Contains(search) || e.Venue.Name.Contains(search));
+            {
+                var pattern = $"%{search.Trim()}%";
+                query = query.Where(e =>
+                    EF.Functions.Like(e.Title, pattern) ||
+                    EF.Functions.Like(e.Category.Name, pattern) ||
+                    EF.Functions.Like(e.Venue.Name, pattern)
+                );
+            }
 
             var total = await query.CountAsync();
             var events = await query
@@ -84,6 +94,8 @@ namespace EventBookingSystemV1.Controllers
                     VenueName = e.Venue.Name,
                     Date = e.Date,
                     Price = e.Price,
+                    OrganizerEmail = e.OrganizerEmail,
+                    OrganizerPhone = e.OrganizerPhone,
                     ImageUrl = e.ImageUrl
                 })
                 .ToListAsync();
@@ -100,9 +112,21 @@ namespace EventBookingSystemV1.Controllers
         [HttpGet("create")]
         public IActionResult Create()
         {
-            ViewBag.Categories = new SelectList(_context.EventCategories, "Id", "Name");
-            ViewBag.Venues = new SelectList(_context.Venues, "Id", "Name");
+            PopulateDropdowns();
             return View();
+        }
+        private void PopulateDropdowns(int? selectedCategory = null, int? selectedVenue = null)
+        {
+            ViewBag.Categories = new SelectList(
+                _context.EventCategories.AsNoTracking().OrderBy(c => c.Name),
+                "Id", "Name",
+                selectedCategory
+            );
+            ViewBag.Venues = new SelectList(
+                _context.Venues.AsNoTracking().OrderBy(v => v.Name),
+                "Id", "Name",
+                selectedVenue
+            );
         }
 
         [HttpPost("create")]
@@ -112,9 +136,7 @@ namespace EventBookingSystemV1.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = new SelectList(_context.EventCategories, "Id", "Name", dto.EventCategoryId);
-                ViewBag.Venues = new SelectList(_context.Venues, "Id", "Name", dto.VenueId);
-
+                PopulateDropdowns(dto.EventCategoryId, dto.VenueId);
                 ModelState.AddModelError("", "Please fill all required fields.");
                 TempData["ErrorMessage"] = "Failed to add event. Please check all inputs.";
                 return View(dto);
@@ -130,11 +152,23 @@ namespace EventBookingSystemV1.Controllers
                 VenueId = dto.VenueId,
                 Date = dto.Date,
                 Price = dto.Price,
-                ImageUrl = imageUrl
+                ImageUrl = imageUrl,
+                OrganizerEmail = dto.OrganizerEmail,
+                OrganizerPhone = dto.OrganizerPhone
             };
 
             _context.Events.Add(newEvent);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.SaveChanges();
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error saving Event {EventId}", newEvent.Id);
+                TempData["ErrorMessage"] = "An unexpected error occurred.";
+                return View(dto);
+            }
+
 
             TempData["SuccessMessage"] = "Event added successfully!";
             await LogAuditAsync(nameof(Event), newEvent.Id, "Create", new { newEvent.Title, newEvent.Date, newEvent.Price });
@@ -158,15 +192,23 @@ namespace EventBookingSystemV1.Controllers
                 return RedirectToAction(nameof(Index));
 
             // determine current user (or zero if unauthenticated)
-            var userId = User.Identity?.IsAuthenticated == true
-                ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
-                : 0;
+            var userId = CurrentUserId;
 
             // check favorite
             var isFav = userId == 0
                 ? false
                 : await _context.Favorites
                     .AnyAsync(f => f.UserId == userId && f.EventId == id);
+
+            // Get all reviews for the event
+            var reviews = await _context.Reviews
+                                  .Where(r => r.EventId == id)
+                                  .ToListAsync();
+
+            // Safely calculate average rating
+            var averageRating = reviews.Any()
+                ? reviews.Average(r => r.Rating)
+                : 0;
 
             var vm = new EventDetailsViewModel
             {
@@ -178,17 +220,14 @@ namespace EventBookingSystemV1.Controllers
                 Date = ev.Date,
                 Price = ev.Price,
                 ImageUrl = ev.ImageUrl,
+                OrganizerEmail = ev.OrganizerEmail,
+                OrganizerPhone = ev.OrganizerPhone,
                 Bookings = await _context.Bookings
                                   .Where(b => b.EventId == id)
                                   .Select(b => new BookingInfoViewModel { /*…*/ })
                                   .ToListAsync(),
-                Reviews = await _context.Reviews
-                                  .Where(r => r.EventId == id)
-                                  .Select(r => new ReviewInfoViewModel { /*…*/ })
-                                  .ToListAsync(),
-                AverageRating = await _context.Reviews
-                                  .Where(r => r.EventId == id)
-                                  .AverageAsync(r => r.Rating),
+                Reviews = reviews.Select(r => new ReviewInfoViewModel { /*…*/ }).ToList(),
+                AverageRating = averageRating,
                 IsFavorited = isFav
             };
 

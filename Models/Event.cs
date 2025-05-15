@@ -26,6 +26,8 @@ namespace EventBookingSystemV1.Models
 
         public required string ImageUrl { get; set; }
 
+        public required string OrganizerEmail { get; set; }
+        public required string OrganizerPhone { get; set; }
         public bool IsDeleted { get; set; }
         // Navigation properties
         public virtual ICollection<Booking> Bookings { get; set; }

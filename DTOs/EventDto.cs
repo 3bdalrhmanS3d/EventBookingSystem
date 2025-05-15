@@ -26,6 +26,12 @@ namespace EventBookingSystemV1.DTOs
 
         [Required]
         public IFormFile Image { get; set; }  // إضافة صورة الحدث
+
+        [Required, EmailAddress]
+        public  string OrganizerEmail { get; set; } 
+
+        [Required, Phone]
+        public string OrganizerPhone { get; set; } = string.Empty;
     }
 
 }

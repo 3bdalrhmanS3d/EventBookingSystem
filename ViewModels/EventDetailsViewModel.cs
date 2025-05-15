@@ -10,6 +10,9 @@
         public DateTimeOffset Date { get; set; }
         public decimal Price { get; set; }
         public string ImageUrl { get; set; } = default!;
+
+        public string OrganizerEmail { get; set; }
+        public string OrganizerPhone { get; set; }
         // Related bookings
         public List<BookingInfoViewModel> Bookings { get; set; } = new();
 

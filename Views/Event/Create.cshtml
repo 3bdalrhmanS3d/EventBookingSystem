@@ -57,6 +57,22 @@
         <div class="form-row">
             <div class="form-col form-col-md-6">
                 <div class="form-group">
+                    <label asp-for="OrganizerEmail">Organizer Email</label>
+                    <input asp-for="OrganizerEmail" class="form-control" placeholder="Enter Organizer Email" />
+                    <span asp-validation-for="OrganizerEmail" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-col form-col-md-6">
+                <div class="form-group">
+                    <label asp-for="OrganizerPhone">Organizer Phone</label>
+                    <input asp-for="OrganizerPhone" class="form-control" placeholder="Enter Organizer phone" />
+                    <span asp-validation-for="OrganizerPhone" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-col form-col-md-6">
+                <div class="form-group">
                     <label asp-for="EventCategoryId">Event Category</label>
                     <select asp-for="EventCategoryId" asp-items="ViewBag.Categories" class="form-control">
                         <option value="">-- Select Category --</option>
