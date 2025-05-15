@@ -6,6 +6,7 @@ using EventBookingSystemV1.Models;
 using EventBookingSystemV1.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace EventBookingSystemV1.Controllers
@@ -25,54 +26,44 @@ namespace EventBookingSystemV1.Controllers
         }
 
         // GET: /
-        public async Task<IActionResult> Index(string search, string? categoryName, string? venueName, string sortOrder, int page = 1)
+        public async Task<IActionResult> Index(
+            string search,
+            string? categoryName,
+            string? venueName,
+            string sortOrder,
+            int page = 1)
         {
+            var searchPattern = $"%{search?.Trim()}%";
+
             var query = _context.Events
                 .AsNoTracking()
-                .Include(e => e.Category)  // Correct way to include the full EventCategory object
-                .Include(e => e.Venue)          // Include the Venue
-                .OrderBy(e => e.Date)          // Default sort by Date
-                .AsQueryable();
+                .Include(e => e.Category)
+                .Include(e => e.Venue)
+                .Where(e =>
+                    (string.IsNullOrWhiteSpace(search)
+                        || EF.Functions.Like(e.Title, searchPattern))
+                    && (string.IsNullOrEmpty(categoryName)
+                        || e.Category.Name == categoryName)
+                    && (string.IsNullOrEmpty(venueName)
+                        || EF.Functions.Like(e.Venue.Name, $"%{venueName.Trim()}%"))
+                );
 
-            // Filter by Title
-            if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(e => e.Title.Contains(search));
-
-            // Filter by Category
-            if (!string.IsNullOrEmpty(categoryName))
-                query = query.Where(e => e.Category.Name == categoryName); // Corrected reference to EventCategory.Name
-
-            // Filter by Venue Name
-            if (!string.IsNullOrEmpty(venueName))
-                query = query.Where(e => e.Venue.Name.Contains(venueName));
-
-            // Sorting
-            switch (sortOrder)
+            query = sortOrder switch
             {
-                case "title_desc":
-                    query = query.OrderByDescending(e => e.Title);
-                    break;
-                case "date_asc":
-                    query = query.OrderBy(e => e.Date);
-                    break;
-                case "date_desc":
-                    query = query.OrderByDescending(e => e.Date);
-                    break;
-                default:
-                    query = query.OrderBy(e => e.Date); // Default sort by Date
-                    break;
-            }
+                "title_desc" => query.OrderByDescending(e => e.Title),
+                "date_asc" => query.OrderBy(e => e.Date),
+                "date_desc" => query.OrderByDescending(e => e.Date),
+                _ => query.OrderBy(e => e.Date)
+            };
 
-            // Calculate pagination
             var total = await query.CountAsync();
             ViewData["CurrentPage"] = page;
-            ViewData["TotalPages"] = (int)System.Math.Ceiling(total / (double)PageSize);
+            ViewData["TotalPages"] = (int)Math.Ceiling(total / (double)PageSize);
             ViewData["Search"] = search;
             ViewData["CategoryName"] = categoryName;
             ViewData["VenueName"] = venueName;
             ViewData["SortOrder"] = sortOrder;
 
-            // Fetch paginated data
             var events = await query
                 .Skip((page - 1) * PageSize)
                 .Take(PageSize)
@@ -81,7 +72,7 @@ namespace EventBookingSystemV1.Controllers
                     Id = e.Id,
                     Title = e.Title,
                     Description = e.Description,
-                    CategoryName = e.Category.Name, // Corrected to reference EventCategory.Name
+                    CategoryName = e.Category.Name,
                     VenueName = e.Venue.Name,
                     Date = e.Date,
                     Price = e.Price,

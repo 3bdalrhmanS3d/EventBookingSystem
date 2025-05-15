@@ -12,9 +12,10 @@ namespace EventBookingSystemV1.Controllers
     [Authorize(Roles = nameof(UserRole.Admin))]
     public class VenueController : BaseController
     {
-        public VenueController(ApplicationDbContext context, IWebHostEnvironment env) : base(context, env)
+        private readonly ILogger<VenueController> _logger;
+        public VenueController(ApplicationDbContext context, IWebHostEnvironment env, ILogger<VenueController> logger) : base(context, env)
         {
-
+            _logger = logger;
         }
 
         // Venues
@@ -25,7 +26,12 @@ namespace EventBookingSystemV1.Controllers
             var query = _context.Venues.AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(v => v.Name.Contains(search) || v.Address.Contains(search));
+            {
+                var p = $"%{search.Trim()}%";
+                query = query.Where(v =>
+                    EF.Functions.Like(v.Name, p) ||
+                    EF.Functions.Like(v.Address, p));
+            }
 
             var total = await query.CountAsync();
             var venues = await query
@@ -57,7 +63,7 @@ namespace EventBookingSystemV1.Controllers
         // POST: /venues/create
         [HttpPost("create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateVenue(VenueDto dto)
+        public async Task<IActionResult> CreateVenue([Bind("Name,Address,Capacity,ContactInfo")] VenueDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -81,11 +87,22 @@ namespace EventBookingSystemV1.Controllers
             };
 
             _context.Venues.Add(newVenue);
-            await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Venue added successfully!";
-            await LogAuditAsync(nameof(Venue), newVenue.Id , "Create", new { dto.Name, dto.Address, dto.Capacity });
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Venue added successfully!";
+                await LogAuditAsync(nameof(Venue), newVenue.Id, "Create", new { dto.Name, dto.Address, dto.Capacity });
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error saving venue {VenueId}", newVenue.Id);
+                ModelState.AddModelError("", "Unexpected error; please try again.");
+                return View(dto);
+            }
+
         }
         // GET: /venues/edit/{id}
         [HttpGet("edit/{id}")]

@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
+using EventBookingSystemV1.Models;
 
 namespace EventBookingSystemV1.Services
 {
@@ -42,6 +43,46 @@ namespace EventBookingSystemV1.Services
             {
                 await SendEmailAsync(item.Email, item.FullName, item.Code, item.ResetLink, item.IsResend);
             }
+        }
+        public async Task SendBookingTicketEmail(string emailAddress, string fullName, Booking booking, Event eventEntity, decimal totalAmount)
+        {
+            var smtpServer = _config["EmailSettings:SmtpServer"];
+            var port = Convert.ToInt32(_config["EmailSettings:Port"]);
+            var fromEmail = _config["EmailSettings:Email"];
+            var password = _config["EmailSettings:Password"];
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("EventBooking", fromEmail));
+            message.To.Add(new MailboxAddress(fullName, emailAddress));
+
+            message.Subject = "Your Event Booking Confirmation - EventBooking";
+            message.Body = new TextPart("html")
+            {
+                Text = BuildBookingConfirmationEmail(fullName, booking, eventEntity, totalAmount)
+            };
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync(smtpServer, port, SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(fromEmail, password);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+        }
+
+        private string BuildBookingConfirmationEmail(string fullName, Booking booking, Event eventEntity, decimal totalAmount)
+        {
+            return $@"
+            <html>
+            <body>
+                <h2>Booking Confirmation</h2>
+                <p>Dear {fullName},</p>
+                <p>Your booking for the event <strong>{eventEntity.Title}</strong> is confirmed.</p>
+                <p><strong>Booking Reference:</strong> {booking.BookingReference}</p>
+                <p><strong>Event Date:</strong> {eventEntity.Date.ToString("MMMM dd, yyyy")}</p>
+                <p><strong>Venue:</strong> {eventEntity.Venue?.Name ?? "TBD"}</p>
+                <p><strong>Total Amount:</strong> ${totalAmount}</p>
+                <p>Thank you for booking with EventBooking!</p>
+            </body>
+            </html>";
         }
 
         private async Task SendEmailAsync(string emailAddress, string fullName, string code, string resetLink, bool isResend)

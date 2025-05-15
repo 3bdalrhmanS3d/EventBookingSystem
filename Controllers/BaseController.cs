@@ -1,6 +1,7 @@
 ﻿using EventBookingSystemV1.Data;
 using EventBookingSystemV1.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text.Json;
@@ -77,38 +78,27 @@ namespace EventBookingSystemV1.Controllers
 
         public async Task RefreshUserClaims(User user)
         {
-            // Get the current identity
-            var identity = (ClaimsIdentity)User.Identity;
+            if (User.Identity is not ClaimsIdentity identity)
+                throw new InvalidOperationException("No identity to refresh.");
 
-            // Remove old claims (if any)
-            var oldUsernameClaim = identity.FindFirst(ClaimTypes.Name);
-            var oldUserBD = identity.FindFirst(ClaimTypes.DateOfBirth);
-            if (oldUsernameClaim != null)
-            {
-                identity.RemoveClaim(oldUsernameClaim);
-            }
+            var existingName = identity.FindFirst(ClaimTypes.Name);
+            var existingDob = identity.FindFirst(ClaimTypes.DateOfBirth);
+            if (existingName != null) identity.RemoveClaim(existingName);
+            if (existingDob != null) identity.RemoveClaim(existingDob);
 
-            if (oldUserBD != null) {
-                identity.RemoveClaim(oldUserBD);
-            }
-
-            // Add new claims based on the updated user data
             identity.AddClaim(new Claim(ClaimTypes.Name, user.FullName));
             identity.AddClaim(new Claim(ClaimTypes.DateOfBirth, user.BirthDate.ToString("yyyy-MM-dd")));
-            // Add any other claims you need to update, e.g. roles, permissions, etc.
 
-            // Create the principal with updated claims
             var principal = new ClaimsPrincipal(identity);
-
-            // Set authentication properties (for persistence, expiration, etc.)
-            var properties = new AuthenticationProperties
+            var props = new AuthenticationProperties
             {
-                IsPersistent = true, // Makes the cookie persistent
-                ExpiresUtc = DateTime.UtcNow.AddDays(30) // Set expiration date if needed
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
             };
-
-            // Re-sign the user in with the updated claims
-            await HttpContext.SignInAsync(principal, properties);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                props);
         }
 
 

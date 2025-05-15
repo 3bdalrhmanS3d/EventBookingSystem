@@ -1,6 +1,7 @@
 ﻿using EventBookingSystemV1.Data;
 using EventBookingSystemV1.DTOs;
 using EventBookingSystemV1.Models;
+using EventBookingSystemV1.Services;
 using EventBookingSystemV1.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +13,11 @@ namespace EventBookingSystemV1.Controllers
     [Authorize]
     public class BookingController : BaseController
     {
-        public BookingController(ApplicationDbContext context, IWebHostEnvironment env)
+        private readonly EmailQueueService _emailQueueService;
+        public BookingController(ApplicationDbContext context, IWebHostEnvironment env, EmailQueueService emailQueueService)
             : base(context, env)
         {
+            _emailQueueService = emailQueueService;
         }
 
         // GET /booking/create/5
@@ -91,6 +94,7 @@ namespace EventBookingSystemV1.Controllers
         {
             
             var userId = CurrentUserId;
+            var user = await _context.Users.FindAsync(userId);
 
             // ensure at least one ticket chosen
             if (model.TicketQuantities == null || !model.TicketQuantities.Any(kvp => kvp.Value > 0))
@@ -252,6 +256,8 @@ namespace EventBookingSystemV1.Controllers
                 await _context.SaveChangesAsync();
 
                 await LogAuditAsync("Booking", booking.Id, "Create", new { booking.EventId, booking.UserId, Total = total });
+
+                await _emailQueueService.SendBookingTicketEmail(user.Email, user.FullName, booking, eventEntity, total);
 
                 // 4) go to confirmation
                 return RedirectToAction(nameof(Confirmation), new { id = booking.Id });

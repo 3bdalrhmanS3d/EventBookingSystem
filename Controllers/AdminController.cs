@@ -159,6 +159,7 @@ namespace EventBookingSystemV1.Controllers
                     VenueName = e.Venue.Name,
                     Date = e.Date,
                     Price = e.Price,
+                    
                     ImageUrl = e.ImageUrl
                 });
 
