@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace EventBookingSystemV1.Controllers
 {
@@ -22,13 +23,17 @@ namespace EventBookingSystemV1.Controllers
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly EmailQueueService _emailQueue;
         private readonly IJwtService _jwtService;
+        private readonly ILogger<AccountController> _logger;
+        private const int ActivationCodeLength = 7; // Length of the activation code
+        
 
-        public AccountController(ApplicationDbContext context, IPasswordHasher<User> passwordHasher, EmailQueueService emailQueue, IJwtService jwtService)
+        public AccountController(ApplicationDbContext context, IPasswordHasher<User> passwordHasher, EmailQueueService emailQueue, IJwtService jwtService , ILogger<AccountController> logger)
         {
             _context = context;
             _passwordHasher = passwordHasher;
             _emailQueue = emailQueue;
             _jwtService = jwtService;
+            _logger = logger;
         }
 
         // Display signup form
@@ -44,7 +49,7 @@ namespace EventBookingSystemV1.Controllers
 
         [HttpPost("signup")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SignUp(SignUpDto dto)
+        public async Task<IActionResult> SignUp([Bind("FirstName,LastName,EmailAddress,BirthDate,Password,AcceptTerms")] SignUpDto dto)
         {
             if (!dto.AcceptTerms)
                 ModelState.AddModelError(nameof(dto.AcceptTerms), "You must agree to the terms.");
@@ -71,33 +76,7 @@ namespace EventBookingSystemV1.Controllers
             await _context.SaveChangesAsync();
 
             // Generate 7-digit numeric activation code
-            var rnd = new Random();
-            string code = rnd.Next(1000000, 10000000).ToString();
-
-            var activationToken = new AccountActivation
-            {
-                UserId = user.Id,
-                Code = code,
-                CreatedAt = DateTimeOffset.UtcNow,
-                ExpiryDate = DateTimeOffset.UtcNow.AddHours(6),
-                IsUsed = false
-            };
-            _context.AccountActivation.Add(activationToken);
-            await _context.SaveChangesAsync();
-
-            _emailQueue.QueueVerificationEmail(
-                user.Email,
-                user.FullName,
-                activationToken.Code,
-                isResend: false);
-
-            Response.Cookies.Append("pending_email", user.Email, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = activationToken.ExpiryDate
-            });
+            await GenerateAndSendActivationAsync(user);
 
             return RedirectToAction("VerifyEmail", new { email = user.Email });
         }
@@ -120,8 +99,10 @@ namespace EventBookingSystemV1.Controllers
         {
             // 1) Model validation
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("VerifyEmail: model state invalid for email={Email}", dto.EmailAddress); 
                 return View(dto);
-
+            }
             // 2) Determine email: form field or pending_email cookie
             var email = dto.EmailAddress;
             if (string.IsNullOrEmpty(email)
@@ -132,6 +113,7 @@ namespace EventBookingSystemV1.Controllers
 
             if (string.IsNullOrEmpty(email))
             {
+                _logger.LogWarning("VerifyEmail: no email provided by form or pending_email cookie");
                 ModelState.AddModelError(nameof(dto.EmailAddress), "Email is required to verify the account.");
                 return View(dto);
             }
@@ -143,16 +125,20 @@ namespace EventBookingSystemV1.Controllers
 
             if (tokenEntry == null)
             {
+                _logger.LogWarning("VerifyEmail: invalid code '{Code}' for email={Email}", dto.Token, email);
+
                 ModelState.AddModelError(nameof(dto.Token), "Invalid activation code.");
                 return View(dto);
             }
             if (tokenEntry.IsUsed)
             {
+                _logger.LogWarning("VerifyEmail: code '{Code}' for email={Email} already used", dto.Token, email);
                 ModelState.AddModelError(nameof(dto.Token), "Activation code has already been used.");
                 return View(dto);
             }
             if (DateTimeOffset.UtcNow > tokenEntry.ExpiryDate)
             {
+                _logger.LogInformation("VerifyEmail: code '{Code}' expired for email={Email} at {Expiry}", dto.Token, email, tokenEntry.ExpiryDate);
                 ModelState.AddModelError(nameof(dto.Token), "Activation code has expired.");
                 return View(dto);
             }
@@ -162,6 +148,8 @@ namespace EventBookingSystemV1.Controllers
             tokenEntry.UsedAt = DateTimeOffset.UtcNow;
             tokenEntry.User.IsActive = true;
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("VerifyEmail: account activated for email={Email}", email);
 
             // 5) Clear pending_email cookie
             Response.Cookies.Delete("pending_email");
@@ -190,28 +178,8 @@ namespace EventBookingSystemV1.Controllers
             }
             if (!user.IsActive)
             {
-                // Resend activation
-                var rnd = new Random();
-                var code = rnd.Next(1000000, 10000000).ToString();
-                var activationToken = new AccountActivation
-                {
-                    UserId = user.Id,
-                    Code = code,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    ExpiryDate = DateTimeOffset.UtcNow.AddHours(6),
-                    IsUsed = false
-                };
-                _context.AccountActivation.Add(activationToken);
-                await _context.SaveChangesAsync();
+                await GenerateAndSendActivationAsync(user, isResend: true);
 
-                _emailQueue.QueueVerificationEmail(user.Email, user.FullName, code, isResend: true);
-                Response.Cookies.Append("pending_email", user.Email, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
-                    Expires = activationToken.ExpiryDate
-                });
                 return RedirectToAction("VerifyEmail", new { email = user.Email });
             }
 
@@ -257,7 +225,11 @@ namespace EventBookingSystemV1.Controllers
         public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("ForgotPassword: invalid model state for email={Email}", dto.EmailAddress);
+
                 return View(dto);
+            }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.EmailAddress);
             if (user != null)
@@ -276,6 +248,11 @@ namespace EventBookingSystemV1.Controllers
                 var resetLink = Url.Action("ResetPassword", "Account",
                     new { email = user.Email, token = token }, Request.Scheme);
                 _emailQueue.QueueResetPasswordEmail(user.Email, user.FullName, resetLink);
+            }
+            else
+            {
+                _logger.LogWarning("ForgotPassword: no user found for email={Email}", dto.EmailAddress);
+
             }
             return RedirectToAction("ForgotPasswordConfirmation");
         }
@@ -357,14 +334,73 @@ namespace EventBookingSystemV1.Controllers
             return RedirectToAction("VerifyEmail", new { email });
         }
 
+
+        /// <summary>
+        /// Generates a secure numeric activation code of the specified length.
+        /// </summary>
+        private string GenerateSecureCode(int length)
+        {
+            const string digits = "0123456789";
+            using var rng = RandomNumberGenerator.Create();
+            var data = new byte[length];
+            rng.GetBytes(data);
+            var result = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = digits[data[i] % digits.Length];
+            }
+            return new string(result);
+        }
+
+        /// <summary>
+        /// Generates an activation token, persists it, sends the verification email, and sets the pending_email cookie.
+        /// </summary>
+        /// 
+        protected async Task<string> GenerateAndSendActivationAsync(User user, bool isResend = false)
+        {
+            var token = GenerateSecureCode(ActivationCodeLength);
+
+            var activation = new AccountActivation
+            {
+                UserId = user.Id,
+                Code = token,
+                CreatedAt = DateTimeOffset.UtcNow,
+                ExpiryDate = DateTimeOffset.UtcNow.AddHours(6),
+                IsUsed = false
+            };
+
+            _context.AccountActivation.Add(activation);
+            await _context.SaveChangesAsync();
+
+            // Queue the verification email
+            _emailQueue.QueueVerificationEmail(
+                user.Email,
+                user.FullName,
+                token,
+                isResend
+            );
+
+            // Set the pending_email cookie for verification flow
+            Response.Cookies.Append("pending_email", user.Email, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = activation.ExpiryDate
+            });
+
+            return token;
+        }
+
         // POST: /account/signout
         [HttpPost("signout")]
         [ValidateAntiForgeryToken]
-        public IActionResult SignOut()
+        public async Task<IActionResult> Logout()
         {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             Response.Cookies.Delete("jwt_token");
-
             return RedirectToAction("SignIn");
         }
+
     }
 }
