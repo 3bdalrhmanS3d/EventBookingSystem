@@ -68,9 +68,12 @@
                                 </div>
                             </div>
                             <div class="ticket-footer">
-                                <a href="@Url.Action("PrintTicket", "Profile", new { id = ticket.Id })" class="btn-admin btn-outline-admin btn-sm" target="_blank">
+                                <button type="button"
+                                        class="btn-admin btn-primary-admin btn-sm"
+                                        onclick="window.open('@Url.Action("PrintTicket","Profile",new { id = ticket.Id })','_blank')">
                                     <i class="fas fa-print"></i> Print Ticket
-                                </a>
+                                </button>
+
                                 <button type="button" class="btn-admin btn-primary-admin btn-sm" onclick="showTicketQR('@ticket.Id', '@ticket.BookingReference')">
                                     <i class="fas fa-qrcode"></i> Show QR
                                 </button>

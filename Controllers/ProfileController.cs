@@ -10,6 +10,7 @@ using EventBookingSystemV1.ViewModels;
 using EventBookingSystemV1.DTOs;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 
 namespace EventBookingSystemV1.Controllers
 {
@@ -19,20 +20,19 @@ namespace EventBookingSystemV1.Controllers
     {
         private readonly IPasswordHasher<User> _passwordHasher;
 
-        public ProfileController(ApplicationDbContext context, IWebHostEnvironment env, IPasswordHasher<User> passwordHasher)
+        private readonly ILogger<ProfileController> _logger;
+        public ProfileController(ApplicationDbContext context, IWebHostEnvironment env, IPasswordHasher<User> passwordHasher, ILogger<ProfileController> logger)
             : base(context, env)
         {
-            _passwordHasher = passwordHasher;
+            _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         // GET: /profile
         [HttpGet("")]
         public async Task<IActionResult> Index()
         {
-            var userId = CurrentUserId;
-            var user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await GetUserDataAsync();
 
             if (user == null) return NotFound();
 
@@ -50,8 +50,9 @@ namespace EventBookingSystemV1.Controllers
         [HttpGet("edit")]
         public async Task<IActionResult> Edit()
         {
-            var userId = CurrentUserId;
-            var user = await _context.Users.FindAsync(userId);
+            _logger.LogInformation("Profile.Edit (GET) called for UserId={UserId}", CurrentUserId);
+
+            var user = await GetUserDataAsync(); var userId = CurrentUserId;
             if (user == null) return NotFound();
 
             var dto = new ProfileViewModel
@@ -70,24 +71,34 @@ namespace EventBookingSystemV1.Controllers
         public async Task<IActionResult> Edit(ProfileDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Profile.Edit (POST): invalid model state for UserId={UserId}", CurrentUserId);
                 return View(dto);
+            }
 
-            var userId = CurrentUserId;
-            var user = await _context.Users.FindAsync(userId);
-            
+            var user = await GetUserDataAsync();
+
             if (user == null) return NotFound();
 
             // update fields
             user.FullName = $"{dto.FirstName.Trim()} {dto.LastName.Trim()}";
-            await _context.SaveChangesAsync();
+            user.BirthDate = dto.BirthDate;
 
-            await RefreshUserClaims(user);
-
-            TempData["SuccessMessage"] = "Profile updated successfully!";
-
-            await LogAuditAsync(nameof(User), user.Id, "UpdateProfile", new { user.FullName, user.BirthDate });
-
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _context.SaveChangesAsync();
+                await RefreshUserClaims(user);
+                TempData["SuccessMessage"] = "Profile updated successfully!";
+                await LogAuditAsync(nameof(User), user.Id, "UpdateProfile", new { user.FullName, user.BirthDate });
+                _logger.LogInformation("Profile.Edit: profile updated for UserId={UserId}", user.Id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Profile.Edit: error saving profile for UserId={UserId}", user.Id);
+                ModelState.AddModelError(string.Empty, "An error occurred while updating your profile. Please try again.");
+                return View(dto);
+            }
         }
 
 
@@ -95,6 +106,7 @@ namespace EventBookingSystemV1.Controllers
         [HttpGet("change-password")]
         public IActionResult ChangePassword()
         {
+            _logger.LogInformation("Profile.ChangePassword (GET) called for UserId={UserId}", CurrentUserId);
             return View(new ChangePasswordDto());
         }
 
@@ -104,28 +116,42 @@ namespace EventBookingSystemV1.Controllers
         public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Profile.ChangePassword (POST): invalid model state for UserId={UserId}", CurrentUserId);
                 return View(dto);
+            }
+
+            var user = await GetUserDataAsync();
 
             var userId = CurrentUserId;
-            var user = await _context.Users.FindAsync(userId);
             if (user == null) return NotFound();
 
             var verify = _passwordHasher
                 .VerifyHashedPassword(user, user.PasswordHash, dto.OldPassword);
             if (verify != PasswordVerificationResult.Success)
             {
+                _logger.LogWarning("ChangePassword: wrong old password for user {UserId}", userId);
+
                 ModelState.AddModelError(nameof(dto.OldPassword), "Current password is incorrect.");
                 return View(dto);
             }
 
             // update to new password
             user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Password changed successfully!";
-            await LogAuditAsync(nameof(User), user.Id, "ChangePassword", null);
-
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Profile.ChangePassword: password changed for UserId={UserId}", user.Id);
+                TempData["SuccessMessage"] = "Password changed successfully!";
+                await LogAuditAsync(nameof(User), user.Id, "ChangePassword", null);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Profile.ChangePassword: error changing password for UserId={UserId}", user.Id);
+                ModelState.AddModelError(string.Empty, "An error occurred while changing your password. Please try again.");
+                return View(dto);
+            }
         }
 
         // My Bookings
@@ -134,6 +160,7 @@ namespace EventBookingSystemV1.Controllers
         public async Task<IActionResult> MyBookings()
         {
             var userId = CurrentUserId;
+            _logger.LogInformation("Profile.MyBookings: retrieving bookings for UserId={UserId}", userId);
             var bookings = await _context.Bookings
                 .AsNoTracking()
                 .Where(b => b.UserId == userId)
@@ -145,10 +172,10 @@ namespace EventBookingSystemV1.Controllers
                     EventTitle = b.Event.Title,
                     EventDate = b.Event.Date,
                     BookedAt = b.BookedAt,
-                    
+
                 })
                 .ToListAsync();
-
+            _logger.LogInformation("Profile.MyBookings: found {Count} bookings for UserId={UserId}", bookings.Count, userId);
             return View(bookings);
         }
 
@@ -157,11 +184,16 @@ namespace EventBookingSystemV1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelBooking(int id)
         {
+            _logger.LogInformation("Profile.CancelBooking: attempt cancel booking {BookingId} for UserId={UserId}", id, CurrentUserId);
             var booking = await _context.Bookings
                 .Include(b => b.Tickets)
-                .FirstOrDefaultAsync(b => b.Id == id && b.UserId == CurrentUserId );
+                .FirstOrDefaultAsync(b => b.Id == id && b.UserId == CurrentUserId);
 
-            if (booking == null) return NotFound();
+            if (booking == null)
+            {
+                _logger.LogWarning("Profile.CancelBooking: booking {BookingId} not found for UserId={UserId}", id, CurrentUserId);
+                return NotFound();
+            }
 
             _context.Tickets.RemoveRange(booking.Tickets);
             _context.Bookings.Remove(booking);
@@ -177,6 +209,8 @@ namespace EventBookingSystemV1.Controllers
         public async Task<IActionResult> MyFavorites()
         {
             var userId = CurrentUserId;
+            _logger.LogInformation("Profile.MyFavorites: retrieving favorites for UserId={UserId}", CurrentUserId);
+
             var favs = await _context.Favorites
                 .AsNoTracking()
                 .Where(f => f.UserId == userId)
@@ -193,7 +227,7 @@ namespace EventBookingSystemV1.Controllers
                     ImageUrl = f.Event.ImageUrl
                 })
                 .ToListAsync();
-
+            _logger.LogInformation("Profile.MyFavorites: found {Count} favorites for UserId={UserId}", favs.Count, userId);
             return View(favs);
         }
 
@@ -208,10 +242,12 @@ namespace EventBookingSystemV1.Controllers
 
             if (existing != null)
             {
+                _logger.LogInformation("ToggleFavorite: removed favorite {EventId} for user {UserId}", eventId, userId);
                 _context.Favorites.Remove(existing);
             }
             else
             {
+                _logger.LogInformation("ToggleFavorite: added favorite {EventId} for user {UserId}", eventId, userId);
                 _context.Favorites.Add(new Favorite { UserId = userId, EventId = eventId });
             }
 
@@ -280,6 +316,7 @@ namespace EventBookingSystemV1.Controllers
                 })
                 .ToListAsync();
 
+            _logger.LogInformation("Profile.MyReviews: found {Count} reviews for UserId={UserId}", reviews.Count, userId);
             return View(reviews);
         }
 
@@ -289,9 +326,14 @@ namespace EventBookingSystemV1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateReview(ReviewDto dto)
         {
-            if (!ModelState.IsValid)
-                return RedirectToAction(nameof(MyReviews));
+            _logger.LogInformation("Profile.CreateReview: attempt create review for EventId={EventId} by UserId={UserId}", dto.Id, CurrentUserId);
 
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Profile.CreateReview: invalid model state for EventId={EventId}", dto.Id);
+
+                return View("MyReviews", dto);
+            }
             var userId = CurrentUserId;
 
             // 1) Prevent duplicates:
@@ -299,6 +341,8 @@ namespace EventBookingSystemV1.Controllers
                 .AnyAsync(r => r.UserId == userId && r.EventId == dto.Id);
             if (alreadyReviewed)
             {
+                _logger.LogWarning("Profile.CreateReview: duplicate review for EventId={EventId}, UserId={UserId}", dto.Id, userId);
+
                 TempData["ErrorMessage"] = "You have already submitted a review for this event.";
                 return RedirectToAction(nameof(MyReviews));
             }
@@ -314,10 +358,20 @@ namespace EventBookingSystemV1.Controllers
             };
 
             _context.Reviews.Add(review);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Profile.CreateReview: review created for EventId={EventId}, UserId={UserId}", dto.Id, userId);
+                TempData["SuccessMessage"] = "Review submitted successfully!";
+                await LogAuditAsync(nameof(Review), review.Id, "Create", new { review.Rating, review.Comment });
+            }
+            catch (Exception ex) {
 
-            TempData["SuccessMessage"] = "Review submitted!";
-            return RedirectToAction(nameof(MyReviews));
+                _logger.LogError(ex, "Profile.CreateReview: error saving review for EventId={EventId}, UserId={UserId}", dto.Id, userId);
+                ModelState.AddModelError(string.Empty, "An error occurred while submitting your review. Please try again.");
+            }
+
+            return RedirectToAction(nameof(Details), "Event", new { id = dto.Id });
         }
 
         // Get Ticket
@@ -326,6 +380,8 @@ namespace EventBookingSystemV1.Controllers
         public async Task<IActionResult> MyTickets()
         {
             var userId = CurrentUserId;
+            _logger.LogInformation("Profile.MyTickets: retrieving tickets for UserId={UserId}", CurrentUserId);
+
             var tickets = await _context.Tickets
                 .AsNoTracking()
                 .Where(t => t.Booking.UserId == userId)
@@ -344,6 +400,7 @@ namespace EventBookingSystemV1.Controllers
                 })
                 .ToListAsync();
 
+            _logger.LogInformation("Profile.MyTickets: found {Count} tickets for UserId={UserId}", tickets.Count, userId);
             return View(tickets);
         }
 
@@ -354,6 +411,7 @@ namespace EventBookingSystemV1.Controllers
         public async Task<IActionResult> PrintTicket(int id)
         {
             var userId = CurrentUserId;
+            _logger.LogInformation("Profile.PrintTicket: printing ticket Id={TicketId} for UserId={UserId}", id, CurrentUserId);
 
             var ticket = await _context.Tickets
                 .AsNoTracking()
@@ -376,10 +434,20 @@ namespace EventBookingSystemV1.Controllers
                 .FirstOrDefaultAsync();
 
             if (ticket == null)
+            {
+                _logger.LogWarning("Profile.PrintTicket: ticket Id={TicketId} not found for UserId={UserId}", id, CurrentUserId);
                 return NotFound();
+            }
 
             return View("PrintTicket", ticket);
         }
 
+        private async Task<User?> GetUserDataAsync()
+        {
+            // Fetch just once, in a read-only manner
+            return await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == CurrentUserId);
+        }
     }
 }
