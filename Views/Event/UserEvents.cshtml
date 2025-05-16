@@ -108,7 +108,7 @@
                                 <h3 class="event-title">@evt.Title</h3>
                                 <div class="event-rating">
                                     <span class="event-rating-star">★</span>
-                                    <span>@(Math.Round(3.5 + new Random().NextDouble() * 1.5, 1))</span>
+                                    <span>@evt.AvgRate</span>
                                     <span class="event-rating-count">(@(new Random().Next(10, 100)))</span>
                                 </div>
                             </div>
@@ -121,7 +121,7 @@
                                         var days = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
                                         var day = days[((int)evt.Date.DayOfWeek)];
                                     }
-                                    @day. @evt.Date.Day | @evt.Date.ToString("h")h - @(evt.Date.Hour + 2)h
+                                    @evt.Date.ToString("%h")h – @((evt.Date.Hour + 2) % 24)h
                                 </span>
                                 <span class="event-price">@evt.Price.ToString("0.##")€</span>
                             </div>

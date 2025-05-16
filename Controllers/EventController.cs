@@ -31,6 +31,7 @@ namespace EventBookingSystemV1.Controllers
             var query = _context.Events.AsNoTracking()
                 .Include(e => e.Category)
                 .Include(e => e.Venue)
+                .Include(e => e.Reviews)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -42,6 +43,7 @@ namespace EventBookingSystemV1.Controllers
                     EF.Functions.Like(e.Venue.Name, pattern)
                 );
             }
+            
 
             var total = await query.CountAsync();
             var events = await query
@@ -56,6 +58,7 @@ namespace EventBookingSystemV1.Controllers
                     VenueName = e.Venue.Name,
                     Date = e.Date,
                     Price = e.Price,
+                    AvgRate = e.Reviews.Average(x=>x.Id),
                     ImageUrl = e.ImageUrl
                 })
                 .ToListAsync();
@@ -96,6 +99,7 @@ namespace EventBookingSystemV1.Controllers
                     Price = e.Price,
                     OrganizerEmail = e.OrganizerEmail,
                     OrganizerPhone = e.OrganizerPhone,
+
                     ImageUrl = e.ImageUrl
                 })
                 .ToListAsync();

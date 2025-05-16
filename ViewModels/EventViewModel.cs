@@ -12,5 +12,7 @@
         public string ImageUrl { get; set; } = default!;
         public string OrganizerEmail { get; set; }
         public string OrganizerPhone { get; set; }
+
+        public double AvgRate { get; set; }
     }
 }
