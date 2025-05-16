@@ -162,7 +162,20 @@ users, events, venues, categories, bookings, reviews, and notifications.
 ### Home Page
 
 ![Home Page](docs/images/homepage.png)
+![Home Page](docs/images/homepage2.png)]
 *Displays event listings with search and pagination.*
+
+### Register/Login
+
+![SignUp](docs/images/Signup.png)
+![Login](docs/images/login.png)]
+![Verfication](docs/images/verification.png)]
+![Verification Email](docs/images/verification-email.png)
+![Forgot Password](docs/images/forgot-password.png)]
+![Forgot Password](docs/images/forgot-password-email.png)
+![Reset Password](docs/images/reset-password-email.png)
+![Reset Password](docs/images/reset-password.png)]]
+*User registration, login, email verification, and password reset forms.*
 
 ### Event Details
 
