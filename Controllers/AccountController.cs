@@ -49,7 +49,7 @@ namespace EventBookingSystemV1.Controllers
 
         [HttpPost("signup")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SignUp([Bind("FirstName,LastName,EmailAddress,BirthDate,Password,AcceptTerms")] SignUpDto dto)
+        public async Task<IActionResult> SignUp(SignUpDto dto)
         {
             if (!dto.AcceptTerms)
                 ModelState.AddModelError(nameof(dto.AcceptTerms), "You must agree to the terms.");

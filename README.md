@@ -85,10 +85,11 @@ users, events, venues, categories, bookings, reviews, and notifications.
    ```bash
    dotnet ef database update
    ```
+
    or
 
-   ```bash
-    Update-Database
+   ```powershell
+   Update-Database
    ```
 
    A default admin account is created using `DefaultAdmin` section in `appsettings`:
@@ -101,7 +102,8 @@ users, events, venues, categories, bookings, reviews, and notifications.
    }
    ```
 
-5. **User Secrets**
+4. **User Secrets**
+
    This project uses **User Secrets** for storing sensitive settings in development.
 
    * Initialize user secrets:
@@ -128,7 +130,7 @@ users, events, venues, categories, bookings, reviews, and notifications.
      dotnet user-secrets set "EmailSettings:FromName" "EventBookingSystem"
      ```
 
-6. **Run the application**
+5. **Run the application**
 
    ```bash
    dotnet run
@@ -152,5 +154,133 @@ users, events, venues, categories, bookings, reviews, and notifications.
 * `ViewModels/` — Models for passing data to views
 * `Services/` — Email queue, JWT service
 * `Views/` — Razor views
+
+---
+
+## Screenshots
+
+### Home Page
+
+![Home Page](docs/images/homepage.png)
+*Displays event listings with search and pagination.*
+
+### Event Details
+
+![Event Details](docs/images/event-details.png)
+*Shows detailed information and booking button.*
+
+### Admin Dashboard
+
+![Admin Dashboard](docs/images/admin-dashboard.png)
+*Overview of counts for users, events, bookings, and verifications.*
+
+### Booking Confirmation
+
+![Booking Confirmation](docs/images/booking-confirmation.png)
+*Confirmation page after successful booking.*
+
+## Endpoints
+
+Below is the full list of available controller actions, grouped by controller and ordered by route:
+
+### AccountController
+
+| HTTP Verb | Route                        | Action Method                 | Description                     |
+| --------- | ---------------------------- | ----------------------------- | ------------------------------- |
+| GET       | /account/signup              | SignUp (GET)                  | Display signup form             |
+| POST      | /account/signup              | SignUp (POST)                 | Process user registration       |
+| GET       | /account/verify-email        | VerifyEmail (GET)             | Display email verification form |
+| POST      | /account/verify-email        | VerifyEmail (POST)            | Process email activation code   |
+| GET       | /account/signin              | SignIn (GET)                  | Display login form              |
+| POST      | /account/signin              | SignIn (POST)                 | Authenticate user and sign in   |
+| GET       | /account/forgot-password     | ForgotPassword (GET)          | Display forgot password form    |
+| POST      | /account/forgot-password     | ForgotPassword (POST)         | Send reset link via email       |
+| GET       | /account/reset-password      | ResetPassword (GET)           | Display reset password form     |
+| POST      | /account/reset-password      | ResetPassword (POST)          | Process new password submission |
+| GET       | /account/resend-verification | ResendVerificationEmail (GET) | Resend activation email         |
+| POST      | /account/signout             | Logout (POST)                 | Sign out user                   |
+
+### AdminController
+
+| HTTP Verb | Route                        | Action Method  | Description                          |
+| --------- | ---------------------------- | -------------- | ------------------------------------ |
+| GET       | /admin/dashboard             | Index          | Display admin dashboard              |
+| GET       | /admin/users                 | Users          | List users with search and paging    |
+| GET       | /admin/users/{id}            | UserDetails    | Display user details                 |
+| POST      | /admin/users/{id}/activate   | ActivateUser   | Activate a user account              |
+| POST      | /admin/users/{id}/deactivate | DeactivateUser | Deactivate a user account            |
+| POST      | /admin/users/{id}/delete     | DeleteUser     | Delete a user                        |
+| GET       | /admin/events                | Events         | List events with search and paging   |
+| GET       | /admin/events/{id}           | EventDetails   | Display event details                |
+| POST      | /admin/events/{id}/delete    | DeleteEvent    | Delete an event                      |
+| GET       | /admin/bookings              | Bookings       | List bookings with search and paging |
+| POST      | /admin/bookings/{id}/delete  | DeleteBooking  | Delete a booking                     |
+| GET       | /admin/audit                 | Audit          | List audit log entries               |
+| GET       | /admin/audit/{id}/details    | AuditDetails   | Display audit log entry details      |
+
+### EventController
+
+| HTTP Verb | Route               | Action Method       | Description                    |
+| --------- | ------------------- | ------------------- | ------------------------------ |
+| GET       | /events             | Index (AdminEvents) | List events for admin          |
+| GET       | /events/all         | Events (UserEvents) | List public events             |
+| GET       | /events/create      | Create (GET)        | Display event creation form    |
+| POST      | /events/create      | Create (POST)       | Process new event              |
+| GET       | /events/{id}        | Details             | Display event details (public) |
+| GET       | /events/edit/{id}   | Edit (GET)          | Display event edit form        |
+| POST      | /events/edit/{id}   | Edit (POST)         | Process event update           |
+| POST      | /events/delete/{id} | Delete              | Delete an event                |
+
+### CategoryController
+
+| HTTP Verb | Route                   | Action Method         | Description                    |
+| --------- | ----------------------- | --------------------- | ------------------------------ |
+| GET       | /categories             | Index                 | List categories                |
+| GET       | /categories/create      | CreateCategory (GET)  | Display category creation form |
+| POST      | /categories/create      | CreateCategory (POST) | Process new category           |
+| GET       | /categories/edit/{id}   | EditCategory (GET)    | Display category edit form     |
+| POST      | /categories/edit/{id}   | EditCategory (POST)   | Process category update        |
+| POST      | /categories/delete/{id} | DeleteCategory        | Delete a category              |
+| GET       | /categories/{id}        | Details               | Display category details       |
+
+### VenueController
+
+| HTTP Verb | Route               | Action Method      | Description                 |
+| --------- | ------------------- | ------------------ | --------------------------- |
+| GET       | /venues             | Index              | List venues                 |
+| GET       | /venues/create      | CreateVenue (GET)  | Display venue creation form |
+| POST      | /venues/create      | CreateVenue (POST) | Process new venue           |
+| GET       | /venues/edit/{id}   | EditVenue (GET)    | Display venue edit form     |
+| POST      | /venues/edit/{id}   | EditVenue (POST)   | Process venue update        |
+| POST      | /venues/delete/{id} | DeleteVenue        | Delete a venue              |
+| GET       | /venues/{id}        | Details            | Display venue details       |
+
+### BookingController
+
+| HTTP Verb | Route                      | Action Method | Description                        |
+| --------- | -------------------------- | ------------- | ---------------------------------- |
+| GET       | /booking/create/{eventId}  | Create (GET)  | Display booking form for event     |
+| POST      | /booking/create/{eventId}  | Create (POST) | Process booking and create tickets |
+| GET       | /booking/confirmation/{id} | Confirmation  | Display booking confirmation       |
+
+### ProfileController
+
+| HTTP Verb | Route                                 | Action Method         | Description                              |
+| --------- | ------------------------------------- | --------------------- | ---------------------------------------- |
+| GET       | /profile                              | Index                 | Display user profile                     |
+| GET       | /profile/edit                         | Edit (GET)            | Display profile edit form                |
+| POST      | /profile/edit                         | Edit (POST)           | Process profile updates                  |
+| GET       | /profile/change-password              | ChangePassword (GET)  | Display change password form             |
+| POST      | /profile/change-password              | ChangePassword (POST) | Process password change                  |
+| GET       | /profile/bookings                     | MyBookings            | List user's bookings                     |
+| POST      | /profile/bookings/{id}/cancel         | CancelBooking         | Cancel a booking                         |
+| GET       | /profile/favorites                    | MyFavorites           | List favorite events                     |
+| POST      | /profile/favorites/toggle/{eventId}   | ToggleFavorite        | Add or remove favorite                   |
+| GET       | /profile/notifications                | MyNotifications       | List user notifications                  |
+| POST      | /profile/notifications/{id}/mark-read | MarkNotificationRead  | Mark notification as read                |
+| GET       | /profile/reviews                      | MyReviews             | List user reviews                        |
+| POST      | /profile/reviews/create               | CreateReview          | Submit a new review                      |
+| GET       | /profile/tickets                      | MyTickets             | List user tickets                        |
+| GET       | /profile/tickets/{id}/print           | PrintTicket           | Display printable ticket view in new tab |
 
 ---
