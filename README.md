@@ -169,27 +169,51 @@ users, events, venues, categories, bookings, reviews, and notifications.
 
 ![SignUp](docs/images/Signup.png)
 ![Login](docs/images/login.png)]
-![Verfication](docs/images/verification.png)]
+![Verfication](docs/images/verification.png)
 ![Verification Email](docs/images/verification-email.png)
-![Forgot Password](docs/images/forgot-password.png)]
+![Forgot Password](docs/images/forgot-password.png)
 ![Forgot Password](docs/images/forgot-password-email.png)
 ![Reset Password](docs/images/reset-password-email.png)
-![Reset Password](docs/images/reset-password.png)]]
+![Reset Password](docs/images/reset-password.png)
 *User registration, login, email verification, and password reset forms.*
+
+### Profile
+
+![Profile](docs/images/profile.png)
+![Profile Edit](docs/images/profile-edit.png)
+![Change Password](docs/images/change-password.png)
+![My Bookings](docs/images/my-bookings.png)
+![My Favorites](docs/images/my-favorites.png)
+![My Notifications](docs/images/my-notifications.png)
+![My Reviews](docs/images/my-reviews.png)
+![My Tickets](docs/images/my-tickets.png)
+![Print Ticket](docs/images/print-ticket.png)
+*User profile management, including editing personal information, changing password, viewing bookings, favorites, notifications, reviews, and tickets.*
 
 ### Event Details
 
+![Event](docs/images/event.png)
 ![Event Details](docs/images/event-details.png)
+![Add Event](docs/images/AddEvent.png)
 *Shows detailed information and booking button.*
 
 ### Admin Dashboard
 
-![Admin Dashboard](docs/images/admin-dashboard.png)
-*Overview of counts for users, events, bookings, and verifications.*
+![Admin Dashboard](docs/images/admin-dashboard1.png)
+![All Users](docs/images/all-users.png)
+![Details](docs/images/user-details.png)
+![All Events](docs/images/event-details2.png)
+![Event Details](docs/images/event-details-admin.png)
+![All Bookings](docs/images/all-bookings.png)
+![Audit Log](docs/images/audit-log.png)
+![Venue](docs/images/Venue.png)
+![Category](docs/images/category.png)
+
+*Overview of counts for users, events, bookings, and pending verifications. CRUD operations for users, events, venues, categories, and bookings. Audit log for all actions.*
 
 ### Booking Confirmation
 
-![Booking Confirmation](docs/images/booking-confirmation.png)
+![Booking View](docs/images/booking-view.png)
 *Confirmation page after successful booking.*
 
 ## Endpoints
